@@ -1,0 +1,9 @@
+D:\project\csproject\board\board\bin\Debug\board.exe.config
+D:\project\csproject\board\board\bin\Debug\board.exe
+D:\project\csproject\board\board\bin\Debug\board.pdb
+D:\project\csproject\board\board\obj\Debug\board.csprojResolveAssemblyReference.cache
+D:\project\csproject\board\board\obj\Debug\board.exe
+D:\project\csproject\board\board\obj\Debug\board.pdb
+D:\project\GitHubProject\FantasyCastle\CS\board\board\bin\Debug\board.exe.config
+D:\project\GitHubProject\FantasyCastle\CS\board\board\obj\Debug\board.exe
+D:\project\GitHubProject\FantasyCastle\CS\board\board\obj\Debug\board.pdb
