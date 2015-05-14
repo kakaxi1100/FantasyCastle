@@ -27,5 +27,9 @@
 *.out
 *.app
 
+#myproject
 .ssh/
 _viminfo
+Qt/MyQQ/MyQQ/MyQQ.pro.user
+Qt/MyQQ/build-MyQQ-Desktop_Qt_5_2_0_MinGW_32bit-Debug/
+
