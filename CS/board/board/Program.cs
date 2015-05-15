@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace board
@@ -21,14 +22,18 @@ namespace board
             public Gender sex;
             //是否电脑
             public bool isHuman;
+            //玩家在地图上的位置
+            public int pos;
         }
 
-        private static int mapNo = -1;
-        private static int playerNums = -1;
-        private static int humanNums = -1;
-        private static int computerNums = -1;
-        private static Player[] players = new Player[4];
-        private static int[] map = new int[100];
+        private static int mapNo = -1;//地图编号
+        private static int playerNums = -1;//游戏人数
+        private static int humanNums = -1;//玩家人数
+        private static int computerNums = -1;//电脑人数
+        private static Player[] players = new Player[4];//玩家信息数组
+        private static int[] map = new int[100];//地图数组
+        private static int[] tilePlayers = new int[100];//每个tile上的player数量
+        private static int curPlayer = 0;//当前玩家
 
         static void Main(string[] args)
         {
@@ -70,13 +75,13 @@ namespace board
             GameHeader();
             #region 选择游戏人数和玩家个数
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("请选择游戏人数:1,2,3,4");
+            Console.WriteLine("请选择游戏人数:2,3,4");
             while (true)
             {
                 try
                 {
                     playerNums = Convert.ToInt32(Console.ReadLine());
-                    if (playerNums > 0 && playerNums < 5)
+                    if (playerNums > 1 && playerNums < 5)
                     {
                         break;
                     }
@@ -117,6 +122,7 @@ namespace board
             for (int i = 0; i < playerNums; i++)
 			{
                 Player p1;
+                p1.pos = 0;
                 if (i < humanNums)
                 {
                     Console.Write("请输入玩家{0}姓名:", i + 1);
@@ -136,19 +142,75 @@ namespace board
             #endregion
             #endregion
             Console.Clear();
+            //产生地图
+            MapCreator();
             #region 游戏进入主循环
-            //1、画信息
-            DrawInfo();
-            //2、画地图
-            DrawMap();
+            while (true)
+            {  
+                //清屏
+                Console.Clear();
+                //1、画信息
+                DrawInfo();
+                //2、画地图
+                DrawMap();
+                //3、走步信息
+                DrawTurn();
+                Thread.Sleep(1000);
+            }
             #endregion
             Console.ReadKey();
         }
 
+        private static void DrawTurn()
+        {
+            Random r = new Random();
+            Console.WriteLine("{0} 按任意键开始掷骰子", players[curPlayer].name);
+            Console.ReadKey(true);
+            Console.WriteLine("掷出点出: {0}", r.Next(1, 7));
+
+            //更新当前玩家
+            curPlayer++;
+            if (curPlayer > playerNums - 1)
+            {
+                curPlayer = 0;
+            }
+        }
+
+        private static void CheckPlayerPos()
+        {
+            //1、检测玩家位置
+            for (int i = 0; i < playerNums; i++)
+            {
+                map[players[i].pos] = i + 8;
+            }
+            //2、检查重叠区域
+            CheckOverLap();
+            for (int i = 0; i < tilePlayers.Length; i++)
+            {
+                if(tilePlayers[i] > 1)
+                {
+                    map[i] = tilePlayers[i] + 10;
+                }
+            }
+        }
+
+        private static void CheckOverLap()
+        {
+            //先将tilePlayers都置为0
+            for (int i = 0; i < tilePlayers.Length; i++)
+			{
+			    tilePlayers[i] = 0;
+			}
+            for (int i = 0; i < playerNums; i++)
+            {
+                tilePlayers[players[i].pos] += 1;
+            }
+        }
+
         private static void DrawMap()
         {
-            //产生map
-            MapCreator();
+            //检查玩家位置
+            CheckPlayerPos();
             switch (mapNo)
             {
                 case 1:
@@ -274,7 +336,7 @@ namespace board
                     j = 98;
                 }
                 j = r.Next(i, j);
-                map[j] = 8;//选择事件是7
+                map[j] = 7;//选择事件是7
             }
         }
 
@@ -365,6 +427,27 @@ namespace board
                     break;
                 case 7:
                     str = "◎";
+                    break;
+                case 8:
+                    str = "Ａ";//玩家1
+                    break;
+                case 9:
+                    str = "Ｂ";//玩家2
+                    break;
+                case 10:
+                    str = "Ｃ";//玩家3
+                    break;
+                case  11:
+                    str = "Ｄ";//玩家4
+                    break;
+                case 12:
+                    str = "②";//两个玩家重叠
+                    break;
+                case 13:
+                    str = "③";//三个玩家重叠
+                    break;
+                case 14:
+                    str = "④";//四个玩家重叠
                     break;
                 default:
                     str = "□";
