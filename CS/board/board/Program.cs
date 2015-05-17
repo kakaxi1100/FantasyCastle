@@ -162,7 +162,7 @@ namespace board
                 //3、走步信息
                 DrawTurn();
 
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
             }
             #endregion
         }
@@ -181,7 +181,7 @@ namespace board
                 }
                 walkStep = 0;
                 Random r = new Random();
-                if (false && players[curPlayer].isHuman == true)
+                if (players[curPlayer].isHuman == true)
                 {
                     Console.WriteLine("{0} 按任意键开始掷骰子", players[curPlayer].name);
                     Console.ReadKey(true);

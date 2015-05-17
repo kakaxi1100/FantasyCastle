@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,7 +20,8 @@ SOURCES += main.cpp\
     myfuncset.cpp \
     myaddfriend.cpp \
     mywidget.cpp \
-    mytoolboxcontainer.cpp
+    mytoolboxcontainer.cpp \
+    mysocket.cpp
 
 HEADERS  += widget.h \
     mytoolbox.h \
@@ -27,7 +29,8 @@ HEADERS  += widget.h \
     myfuncset.h \
     myaddfriend.h \
     mywidget.h \
-    mytoolboxcontainer.h
+    mytoolboxcontainer.h \
+    mysocket.h
 
 RESOURCES += \
     headerImg.qrc
