@@ -5,6 +5,7 @@
 
 #include <QLineEdit>
 #include <QPushButton>
+#include "mysocket.h"
 #include "mywidget.h"
 
 class MyLogin : public QWidget
@@ -20,10 +21,13 @@ private slots:
 private:
     QLineEdit* account;
     QLineEdit* password;
+    QLineEdit* hostIP;
+    QLineEdit* hostPort;
     QPushButton* login;
     QPushButton* cancel;
     QPushButton* reg;
 
+    MySocket* mysocket;
     MyWidget* myqq;
 };
 

@@ -24,6 +24,8 @@ namespace board
             public bool isHuman;
             //玩家在地图上的位置
             public int pos;
+            //玩家暂停的回合数
+            public int stopNum;
         }
 
         private static int mapNo = -1;//地图编号
@@ -32,9 +34,12 @@ namespace board
         private static int computerNums = -1;//电脑人数
         private static Player[] players = new Player[4];//玩家信息数组
         private static int[] map = new int[100];//地图数组
+        private static int[] originMap = new int[100];//源数组
         private static int[] tilePlayers = new int[100];//每个tile上的player数量
         private static int curPlayer = 0;//当前玩家
-
+        private static string keepTurnInfo = "";
+        private static int turnState = 0;
+        private static bool overFlag = false;
         static void Main(string[] args)
         {
             #region 游戏开始选择界面
@@ -123,6 +128,7 @@ namespace board
 			{
                 Player p1;
                 p1.pos = 0;
+                p1.stopNum = 0;
                 if (i < humanNums)
                 {
                     Console.Write("请输入玩家{0}姓名:", i + 1);
@@ -145,7 +151,7 @@ namespace board
             //产生地图
             MapCreator();
             #region 游戏进入主循环
-            while (true)
+            while (!overFlag)
             {  
                 //清屏
                 Console.Clear();
@@ -155,24 +161,171 @@ namespace board
                 DrawMap();
                 //3、走步信息
                 DrawTurn();
+
                 Thread.Sleep(1000);
             }
             #endregion
-            Console.ReadKey();
         }
 
+        private static int walkStep = 0;
         private static void DrawTurn()
         {
-            Random r = new Random();
-            Console.WriteLine("{0} 按任意键开始掷骰子", players[curPlayer].name);
-            Console.ReadKey(true);
-            Console.WriteLine("掷出点出: {0}", r.Next(1, 7));
-
-            //更新当前玩家
-            curPlayer++;
-            if (curPlayer > playerNums - 1)
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            if (turnState == 0)//第一个状态掷骰子
             {
-                curPlayer = 0;
+                if (players[curPlayer].stopNum > 0)
+                {
+                    Console.WriteLine("{0} 处于暂停状态", players[curPlayer].name);
+                    turnState = 3;
+                    return;
+                }
+                walkStep = 0;
+                Random r = new Random();
+                if (players[curPlayer].isHuman == true)
+                {
+                    Console.WriteLine("{0} 按任意键开始掷骰子", players[curPlayer].name);
+                    Console.ReadKey(true);
+                }
+                else
+                {
+                    Console.WriteLine("{0} 开始掷骰子", players[curPlayer].name);
+                }
+                walkStep = r.Next(1, 7);
+                Console.WriteLine("掷出点出: {0}", walkStep);
+                turnState = 1;
+            }
+            else if(turnState == 1)//第二个状态玩家开始走步
+            {
+                PlayerRun(ref walkStep);
+            }
+            else if (turnState == 2)//第三个状态检查是否触发事件
+            {
+                CheckEvent();
+            }
+            else if(turnState == 3)//回合停止状态
+            {
+                if (players[curPlayer].stopNum == 0)
+                {
+                    turnState = 0;
+                    return;
+                }
+                players[curPlayer].stopNum--;
+                keepTurnInfo = players[curPlayer].name + " 还需暂停 " + players[curPlayer].stopNum + " 回合\n";
+                turnState = 4;
+            }
+            else if (turnState == 4)//回合结束
+            {
+                keepTurnInfo = "";
+                Console.WriteLine("{0} 回合结束", players[curPlayer].name);
+                //更新当前玩家
+                curPlayer++;
+                if (curPlayer > playerNums - 1)
+                {
+                    curPlayer = 0;
+                }
+
+                turnState = 0;
+            }
+            else if (turnState == 5)//游戏结束状态
+            {
+                Console.WriteLine("■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□");
+                Console.WriteLine("{0} 胜利！！", players[curPlayer].name);
+                Console.WriteLine("■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□■□");
+                overFlag = true;
+                Console.ReadKey(true);
+            }
+            Console.Write(keepTurnInfo);
+        }
+
+        private static void CheckEvent()
+        {
+            int tileType = originMap[players[curPlayer].pos];
+            switch (tileType)
+            {
+                case 2:
+                    EndGameEvent();
+                    break;
+                case 3:
+                    //后退
+                    TurnBackEvent();
+                    break;
+                case 4:
+                    //前进
+                    GoAheadEvent();
+                    break;
+                case 5:
+                    //暂停
+                    StopTurnEvent();
+                    break;
+                default:
+                    turnState = 4;
+                    break;
+            }
+        }
+
+        private static void StopTurnEvent()
+        {
+            Random r = new Random();
+            int stopNum = r.Next(1, 4);
+            players[curPlayer].stopNum = stopNum;
+            keepTurnInfo = "玩家 " + players[curPlayer].name + " 触发暂停事件，暂停 " + stopNum + " 回合\n";
+            turnState = 4;
+        }
+
+        private static void GoAheadEvent()
+        {
+            Random r = new Random();
+            walkStep = r.Next(1, 7);
+            keepTurnInfo = "玩家 " + players[curPlayer].name + " 触发前进事件，前进 " + walkStep + " 格\n";
+            turnState = 1;
+        }
+
+        private static void TurnBackEvent()
+        {
+            Random r = new Random();
+            walkStep = r.Next(-6, 0);
+            keepTurnInfo = "玩家 " + players[curPlayer].name + " 触发后退事件，退后 " + (walkStep*-1) + " 格\n";
+            turnState = 1;
+        }
+
+        private static void EndGameEvent()
+        {
+            turnState = 5;  
+        }
+
+        private static void PlayerRun(ref int num)
+        {
+            if (num == 0)
+            {
+                keepTurnInfo = "玩家 " + players[curPlayer].name + " 走步结束\n";
+                turnState = 2;
+                return;
+            }
+            if (players[curPlayer].pos >= 0 && players[curPlayer].pos <= 99)
+            {
+                if (num > 0)
+                {          
+                    players[curPlayer].pos++;
+                    if (players[curPlayer].pos > 99)
+                    {
+                        players[curPlayer].pos = 98;
+                        num = num * -1;
+                    }
+                    keepTurnInfo = "玩家 " + players[curPlayer].name + " 还要前进 " + num + " 步\n";
+                    num--;
+                }
+                else
+                {
+                    players[curPlayer].pos--;
+                    if (players[curPlayer].pos < 0)
+                    {
+                        players[curPlayer].pos = 0;
+                        turnState = 2;
+                        return;
+                    }
+                    keepTurnInfo = "玩家 " + players[curPlayer].name + " 还要后退 " + (num*-1) + " 步\n";
+                    num++;
+                }
             }
         }
 
@@ -209,6 +362,8 @@ namespace board
 
         private static void DrawMap()
         {
+            //还原成源数组
+            changeMapToOrigin();
             //检查玩家位置
             CheckPlayerPos();
             switch (mapNo)
@@ -221,6 +376,15 @@ namespace board
                     break;
                 default:
                     break;
+            }
+            Console.WriteLine();
+        }
+        //还原成源数组
+        private static void changeMapToOrigin()
+        {
+            for (int i = 0; i < map.Length; i++)
+            {
+                map[i] = originMap[i];
             }
         }
 
@@ -237,7 +401,7 @@ namespace board
             Console.WriteLine();
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("□-普通, ×-暂停, →-前进, ←-后退, ※-随机事件, ◎-选择事件, ●-起点, ★-终点");
+            Console.WriteLine("□-普通, ×-暂停, →-前进, ←-后退, ●-起点, ★-终点");
             Console.WriteLine();
         }
 
@@ -279,6 +443,9 @@ namespace board
 
         private static void MapCreator()
         {
+            originMap[0] = 1;
+            originMap[originMap.Length - 1] = 2;
+
             map[0] = 1;//起点是1
             map[map.Length - 1] = 2;//终点是2 
             Random r = new Random();
@@ -293,6 +460,7 @@ namespace board
                 }
                 j = r.Next(i, j);
                 map[j] = 3;//后退是3
+                originMap[j] = 3;
             }
 
             for (i = 1; i < 99; i += 10)
@@ -304,6 +472,7 @@ namespace board
                 }
                 j = r.Next(i, j);
                 map[j] = 4;//前进是4
+                originMap[j] = 4;
             }
 
             for (i = 1; i < 99; i += 9)
@@ -315,28 +484,7 @@ namespace board
                 }
                 j = r.Next(i, j);
                 map[j] = 5;//暂停是5
-            }
-
-            for (i = 1; i < 99; i += 6)
-            {
-                j = i + 8;
-                if (j > 98)
-                {
-                    j = 98;
-                }
-                j = r.Next(i, j);
-                map[j] = 6;//随机事件是6
-            }
-
-            for (i = 1; i < 99; i += 6)
-            {
-                j = i + 8;
-                if (j > 98)
-                {
-                    j = 98;
-                }
-                j = r.Next(i, j);
-                map[j] = 7;//选择事件是7
+                originMap[j] = 5;
             }
         }
 
@@ -421,12 +569,6 @@ namespace board
                     break;
                 case 5:
                     str = "×";
-                    break;
-                case 6:
-                    str = "※";
-                    break;
-                case 7:
-                    str = "◎";
                     break;
                 case 8:
                     str = "Ａ";//玩家1
