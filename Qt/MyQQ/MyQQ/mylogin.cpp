@@ -82,7 +82,7 @@ void MyLogin::loginClick()
 //    {
 //        myqq->show();
 //    }
-    mysocket->socketConnect(hostIP->text(), hostPort->text().toInt());
+    mysocket->socketConnect(account->text(), password->text(),hostIP->text(), hostPort->text().toInt());
 }
 
 void MyLogin::cancelClick()

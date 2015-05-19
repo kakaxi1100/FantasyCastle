@@ -143,5 +143,23 @@ int acceptSocket(int fd)
 //接收消息    
 int recvSocket(int fd)    
 {      
-    return 0;    
+    struct LoginRecvMsg loginRecv;   
+    int ret = 0;   
+    memset(&loginRecv, 0, sizeof(loginRecv));    
+    int retrecv = recv(fd, &loginRecv, sizeof(loginRecv), 0);    
+    if(retrecv == -1)    
+    {   
+    	cout<<"socket listen failed ! " << strerror(errno) << endl;
+        ret = - 1;      
+    }    
+    else if(retrecv == 0)//正常退出     
+    {   
+		cout<<"socket closed failed ! " << strerror(errno) << endl;   
+        ret = -1;      
+    }    
+    else    
+    {    
+       cout<<loginRecv.userName << loginRecv.password << endl;
+    }     
+    return ret;       
 } 
