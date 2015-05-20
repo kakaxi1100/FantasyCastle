@@ -31,9 +31,9 @@ MySocket::~MySocket()
     }
 }
 
-void MySocket::socketConnect(QString userName, QString password,QString ip, int port)
+void MySocket::socketConnect(QString userName, QString password, QString ip, int port)
 {
-    qDebug()<<"socketConnect "<<ip<<"   "<< port<<endl;
+    qDebug()<<"socketConnect "<<userName<<"   "<<password<<"   "<<ip<<"   "<< port<<endl;
     myTcpSocket->abort();//取消已经有的连接
     QHostAddress hostAddr(ip);
     myTcpSocket->connectToHost(hostAddr, port);
@@ -51,13 +51,17 @@ void MySocket::loginSendMsg()
 {
     memset(&loginSend, 0, sizeof(loginSend));
     loginSend.protocolID = 100;
-    loginSend.userName = clientMap[0]->userName;
-    loginSend.password = clientMap[0]->password;
+    const char *userName = clientMap[0]->userName.toStdString().c_str();
+    const char *password = clientMap[0]->password.toStdString().c_str();
+
+    strncpy(loginSend.userName, "userName", strlen("userName"));
+    strncpy(loginSend.password, "password", strlen("password"));
+
     QDataStream sendout(&outblock, QIODevice::WriteOnly);
     sendout.setVersion(QDataStream::Qt_5_2);
-    sendout<<loginSend.protocolID << clientMap[0]->userName << clientMap[0]->password;
+    sendout<< loginSend.userName << loginSend.password;
     myTcpSocket->write(outblock);
-    outblock.resize(0);
+    //outblock.resize(0);
 }
 
 void MySocket::socketRecv()
@@ -78,9 +82,9 @@ void MySocket::socketError()
 void MySocket::addClient(QString userName, QString password)
 {
     struct ClientInfo* clientInfo = new ClientInfo();
+
     clientInfo->userName = userName;
     clientInfo->password = password;
-    clientInfo->id = clientID;
 
     clientMap[clientInfo->id] = clientInfo;
 

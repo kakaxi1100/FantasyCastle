@@ -16,9 +16,9 @@ struct ClientInfo
 
 struct LoginSend
 {
-    qint32 protocolID;
-    QString userName;
-    QString password;
+   qint32 protocolID;
+   char userName[100];
+   char password[100];
 };
 
 class MySocket : QObject

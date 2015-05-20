@@ -145,7 +145,7 @@ int recvSocket(int fd)
 {      
     struct LoginRecvMsg loginRecv;   
     int ret = 0;   
-    memset(&loginRecv, 0, sizeof(loginRecv));    
+    //memset(&loginRecv, 0, sizeof(loginRecv));      
     int retrecv = recv(fd, &loginRecv, sizeof(loginRecv), 0);    
     if(retrecv == -1)    
     {   

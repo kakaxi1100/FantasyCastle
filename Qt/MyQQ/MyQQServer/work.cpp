@@ -74,7 +74,7 @@ void Work::run()
             //如果来的是输入事件，则执行socket_recv   
             if(events[i].events & EPOLLIN)  
             {  
-                client_skfd = events[i].data.fd;  
+                client_skfd = events[i].data.fd;
                 if(recvSocket(client_skfd) <= 0)  
                 {  
                 	userLogout(client_skfd);

@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	if(argc < 2)
+	/*if(argc < 2)
 	{
 		cout << "please input server port !" <<endl;
 		
@@ -21,7 +21,9 @@ int main(int argc, char* argv[])
 		cout<<"port "<< port << " is invaild!" <<endl;
 		
 		return EXIT_FAILURE;
-	}
+	}*/
+	
+	int port = 8080;
 	
 	cout<<"server start::::"<<endl;
 	//1、设置成服务端守护进程 

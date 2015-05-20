@@ -17,7 +17,7 @@ int recvSocket(int fd);
 
 struct LoginRecvMsg
 {
-	char* userName;
-	char* password;	
+	char userName[100];
+	char password[100];	
 };
 #endif
