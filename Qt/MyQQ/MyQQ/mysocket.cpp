@@ -60,7 +60,7 @@ void MySocket::loginSendMsg()
     QDataStream sendout(&outblock, QIODevice::WriteOnly);
     sendout.setVersion(QDataStream::Qt_5_2);
     sendout<< loginSend.userName << loginSend.password;
-    myTcpSocket->write(outblock);
+    myTcpSocket->write(outblock, 200);
     //outblock.resize(0);
 }
 
