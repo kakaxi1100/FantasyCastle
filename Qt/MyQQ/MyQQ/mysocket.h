@@ -40,12 +40,8 @@ private:
     void loginSendMsg();
 
     QTcpSocket* myTcpSocket;
-    QByteArray outblock;//输出缓冲区
-
-    struct LoginSend loginSend;
 
     QMap<int, struct ClientInfo*> clientMap;
-
 
     static int clientID;
 };
