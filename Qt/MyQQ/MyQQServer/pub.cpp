@@ -10,6 +10,7 @@
 #include <arpa/inet.h>    
 #include <netinet/in.h> 
 #include <signal.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -140,8 +141,44 @@ int acceptSocket(int fd)
     return client_sockfd;    
 }
 
+struct test
+{
+	int a;
+	char buf[100];
+};
+
 //接收消息    
 int recvSocket(int fd)    
 {      
-    return 0;    
+    struct LoginRecvMsg loginRecv;   
+    int ret = 0;   
+    memset(&loginRecv, 0, sizeof(loginRecv));      
+//    int retrecv = recv(fd, &loginRecv, sizeof(loginRecv), 0); 
+
+	struct test t;
+	memset(&t, 0, sizeof(t));   
+	
+	int retrecv = recv(fd, &t, sizeof(t), 0);  
+	cout<<retrecv<<endl; 
+    if(retrecv == -1)    
+    {   
+    	cout<<"socket listen failed ! " << strerror(errno) << endl;
+        ret = - 1;      
+    }    
+    else if(retrecv == 0)//正常退出     
+    {   
+		cout<<"socket closed failed ! " << strerror(errno) << endl;   
+        ret = -1;      
+    }    
+    else    
+    {    
+    	printf("%d %s \n",t.a, t.buf);
+//       cout<<loginRecv.userName << loginRecv.password<< endl;
+//		cout<< t.b << "  "<< t.c<<" " << t.d <<endl;
+//		printf("%c %c %c \n", t.b, t.c, t.d);
+//		printf("%d %d %d \n", t.b, t.c, t.d);
+//		printf("%c  %c  %c  %c  %c  %c  %c  %c  %c  %c \n", t.b[0], t.b[1], t.b[2], t.b[3], t.b[4], t.b[5], t.b[6], t.b[7], t.b[8], t.b[9]);
+//		printf("%d  %d  %d  %d  %d  %d  %d  %d  %d  %d \n", t.b[0], t.b[1], t.b[2], t.b[3], t.b[4], t.b[5], t.b[6], t.b[7], t.b[8], t.b[9]);
+    }     
+    return ret;       
 } 

@@ -7,7 +7,6 @@
 #include <QPushButton>
 #include "mysocket.h"
 #include "mywidget.h"
-
 class MyLogin : public QWidget
 {
     Q_OBJECT

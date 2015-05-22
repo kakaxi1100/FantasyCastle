@@ -10,9 +10,11 @@ MyLogin::MyLogin(QWidget *parent) :
    // this->setWindowFlags(Qt::FramelessWindowHint);
 
     account = new QLineEdit(this);
+    account->setText("Ares");
     password = new QLineEdit(this);
+    password->setText("123456");
     hostIP = new QLineEdit(this);
-    hostIP->setText("192.168.1.254");
+    hostIP->setText("10.88.52.79");
     hostPort = new QLineEdit(this);
     hostPort->setText("8080");
 
@@ -82,7 +84,7 @@ void MyLogin::loginClick()
 //    {
 //        myqq->show();
 //    }
-    mysocket->socketConnect(hostIP->text(), hostPort->text().toInt());
+    mysocket->socketConnect(account->text(), password->text(),hostIP->text(), hostPort->text().toInt());
 }
 
 void MyLogin::cancelClick()

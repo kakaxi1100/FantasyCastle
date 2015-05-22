@@ -15,4 +15,9 @@ int acceptSocket(int fd);
 
 int recvSocket(int fd);
 
+struct LoginRecvMsg
+{
+	char userName[100];
+	char password[100];	
+};
 #endif
