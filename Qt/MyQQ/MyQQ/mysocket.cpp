@@ -59,7 +59,7 @@ struct Test
 
 void MySocket::loginSendMsg()
 {
-/*    QByteArray outblock;//输出缓冲区
+    QByteArray outblock;//输出缓冲区
     struct LoginSend loginSend;
     memset(&loginSend, 0, sizeof(loginSend));
     loginSend.protocolID = 100;
@@ -81,28 +81,30 @@ void MySocket::loginSendMsg()
     strncpy(loginSend.userName,userName, strlen(userName));
     const char *password = clientMap[0]->password.toStdString().data();
     strncpy(loginSend.password,password, strlen(password));
-    cout << loginSend.userName<< "  " << loginSend.password<< endl;
-    QDataStream sendout(&outblock, QIODevice::WriteOnly);
-    sendout.setByteOrder(QDataStream::BigEndian);
-//    sendout.setVersion(QDataStream::Qt_5_2);
-//    sendout<< loginSend.userName << loginSend.password;
-    sendout.writeBytes(loginSend.userName, sizeof(loginSend.userName));
-    sendout.writeBytes(loginSend.password, sizeof(loginSend.password));
-
-    qDebug()<<loginSend.userName<<"  "<<loginSend.password<<"  "<<sizeof(loginSend.userName) + sizeof(loginSend.password)<<endl;
-    myTcpSocket->write(outblock, sizeof(loginSend.userName) + sizeof(loginSend.password));
-    //outblock.resize(0);
-*/
-//----------------------for test----------------------------------
-    QByteArray outblock;
     QDataStream sendout(&outblock, QIODevice::WriteOnly);
     sendout.setByteOrder(QDataStream::LittleEndian);
-    if(sendout.byteOrder() == sendout.BigEndian)
-    {
-        qDebug()<<"BigEndian";
-    }else{
-        qDebug()<<"LittleEndian";
-    }
+//    sendout.setVersion(QDataStream::Qt_5_2);
+    sendout<< loginSend.protocolID;
+    sendout.writeRawData(loginSend.userName, sizeof(loginSend.userName));
+    sendout.writeRawData(loginSend.password, sizeof(loginSend.password));
+
+    qDebug()<<loginSend.userName<<"  "<<loginSend.password<<"  "<<strlen(loginSend.userName) + strlen(loginSend.password)<<endl;
+    qint64 q =  myTcpSocket->write(outblock, sizeof(loginSend));
+    qDebug()<<"send length:: "<<q;
+    //outblock.resize(0);
+
+//----------------------for test----------------------------------
+//----------------------"//"表示公用测试块-------------------------
+
+//    QByteArray outblock;
+//    QDataStream sendout(&outblock, QIODevice::WriteOnly);
+//    sendout.setByteOrder(QDataStream::LittleEndian);
+//    if(sendout.byteOrder() == sendout.BigEndian)
+//    {
+//        qDebug()<<"BigEndian";
+//    }else{
+//        qDebug()<<"LittleEndian";
+//    }
  /*
 //  注意char的类型的长度（sizeof）要提成int在后端才能正确收到
 //  后端的类型也是int
@@ -121,6 +123,7 @@ void MySocket::loginSendMsg()
     sendout.writeRawData(h, strlen(h));//这个服务端收到不会报错
    qint64 q =  myTcpSocket->write(outblock, strlen(h));
 */
+/*   //传结构体测试
    struct Test t;
    t.a = 10;
    memset(t.buf, 0, sizeof(t.buf));
@@ -129,9 +132,12 @@ void MySocket::loginSendMsg()
    strncpy(t.buf, b, strlen(b));
    qDebug()<<"t.buf  "<<strlen(t.buf);
    sendout<<t.a;
+   //如果用QDataStream传字符传一定要用到这个，writeBtytes 传字符串会报错，否则就用QByteArray传字符串
    sendout.writeRawData(t.buf, strlen(t.buf));
    qint64 q =  myTcpSocket->write(outblock, sizeof(t.a) + strlen(t.buf));
-   qDebug()<<q;
+*/
+//   qDebug()<<q;
+
 //----------------------------------------------------------------
 }
 

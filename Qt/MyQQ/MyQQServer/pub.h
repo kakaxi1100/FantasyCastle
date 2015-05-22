@@ -17,6 +17,7 @@ int recvSocket(int fd);
 
 struct LoginRecvMsg
 {
+	int protoclID;
 	char userName[100];
 	char password[100];	
 };
