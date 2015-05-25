@@ -150,7 +150,15 @@ int recvSocket(int fd)
 //    int retrecv = recv(fd, &loginRecv, sizeof(loginRecv), 0);
 	int a; 
     int retrecv = recv(fd, &a, sizeof(a), 0); 
-
+    int count = 0;
+	while(retrecv > 0)
+	{
+		retrecv = recv(fd, &a, sizeof(a), 0); 
+		count++;
+		cout<<"a is:: "<<a<<endl;
+		cout<<retrecv<<" "<<count<<endl;
+//		memset(buf, 0, sizeof(buf)); 
+	}
 	cout<<"recv length:: " << retrecv <<endl;
 	 
     if(retrecv == -1)    
@@ -165,7 +173,7 @@ int recvSocket(int fd)
     }    
     else    
     {    
-    	cout<<a<<endl;
+//    	cout<<a<<endl;
 //    	cout<<loginRecv.protoclID<<" "<<loginRecv.userName<<" "<<loginRecv.password<< endl;
     }     
     return ret;       

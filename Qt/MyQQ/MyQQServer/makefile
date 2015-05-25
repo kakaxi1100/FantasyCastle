@@ -6,7 +6,8 @@ PARAM=-Wall -g
  
 SRCS=pub.cpp \
 	work.cpp \
-	server.cpp
+	server.cpp \
+	byteArray.cpp
  
 OBJS=$(SRCS:.cpp=.o)
  

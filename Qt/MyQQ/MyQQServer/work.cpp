@@ -67,6 +67,7 @@ void Work::run()
                     ev.data.fd = client_skfd;  
                     ev.events = EPOLLIN | EPOLLERR | EPOLLHUP;  
                     epoll_ctl(epfd, EPOLL_CTL_ADD, client_skfd, &ev);   
+                    setnonblocking(client_skfd); //ÉèÖÃÎª·Ç×èÈû 
 					continue; 
                 }  
             }  
