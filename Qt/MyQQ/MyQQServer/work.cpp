@@ -1,10 +1,5 @@
 #include "work.h"
-#include "pub.h"
-#include <cstdlib>
-#include <iostream>
-#include <sys/epoll.h>
-#include <string.h>
-#include <errno.h>
+
 
 using namespace std;
 Work::Work(int port)

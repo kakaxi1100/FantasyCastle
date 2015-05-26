@@ -84,12 +84,13 @@ void MySocket::loginSendMsg()
     QDataStream sendout(&outblock, QIODevice::WriteOnly);
     sendout.setByteOrder(QDataStream::LittleEndian);
 //    sendout.setVersion(QDataStream::Qt_5_2);
+    sendout<<qint16(sizeof(loginSend));//先用ushort发长度过去
     sendout<< loginSend.protocolID;
     sendout.writeRawData(loginSend.userName, sizeof(loginSend.userName));
     sendout.writeRawData(loginSend.password, sizeof(loginSend.password));
 
     qDebug()<<loginSend.userName<<"  "<<loginSend.password<<"  "<<strlen(loginSend.userName) + strlen(loginSend.password)<<endl;
-    qint64 q =  myTcpSocket->write(outblock, sizeof(loginSend));
+    qint64 q =  myTcpSocket->write(outblock, sizeof(loginSend) + 2);//还要加上此消息长度
     qDebug()<<"send length:: "<<q;
     //outblock.resize(0);
 
@@ -143,7 +144,10 @@ void MySocket::loginSendMsg()
 
 void MySocket::socketRecv()
 {
-
+    QDataStream in(myTcpSocket);
+    char buf[100] = {0};
+    in.readRawData(buf, sizeof(buf));
+    qDebug()<<"the message is: "<<buf;
 }
 
 void MySocket::socketSend()

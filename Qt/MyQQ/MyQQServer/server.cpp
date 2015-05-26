@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
-#include "pub.h"
 #include "work.h"
+#include "pub.h"
 #include <signal.h>
 
 using namespace std;

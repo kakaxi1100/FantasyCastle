@@ -16,7 +16,7 @@ struct ClientInfo
 
 struct LoginSend
 {
-   qint32 protocolID;
+   quint16 protocolID;
    char userName[100];
    char password[100];
 };

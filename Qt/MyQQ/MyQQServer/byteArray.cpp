@@ -1,7 +1,5 @@
 #include "byteArray.h"
-#include <cstdlib>
-#include <string.h>
-#include <iostream>
+
 
 using namespace std;
 
@@ -13,6 +11,16 @@ ByteArray::ByteArray()
 ByteArray::~ByteArray()
 {
 	
+}
+
+void ByteArray::setBufLen(unsigned int value)
+{
+	len = value;
+}
+ 
+unsigned int ByteArray::getBufLen()
+{
+	return len;
 }
 	
 void ByteArray::setBytesAvailable(unsigned int value)
@@ -27,9 +35,9 @@ unsigned int ByteArray::getBytesAvailable()
 
 unsigned int ByteArray::plusPosition(unsigned int value)
 {
-	if((position + value) > getBytesAvailable())
+	if(value > getBytesAvailable())
 	{
-		cout<<"position out of range !!" << endl;
+		cout<<"position out of range !!"<< endl <<"position is: "<<getPosition() << " add value is: "<<value << " available is: "<<getBytesAvailable() << endl;
 		return -1;
 	}
 	
@@ -42,7 +50,7 @@ unsigned int ByteArray::minusPosition(unsigned int value)
 {
 	if(position  < value)
 	{
-		cout<<"position out of range !!" << endl;
+		cout<<"position out of range !!"<< endl <<"position is: "<<getPosition() << " minus value is: "<<value << " available is: "<<getBytesAvailable() << endl;
 		return -1;
 	}
 	
@@ -56,7 +64,6 @@ unsigned int ByteArray::getPosition()
 	return position;
 }	
 	
-	
 void ByteArray::clear()
 {
 	bytesAvailable = 0;
@@ -64,16 +71,32 @@ void ByteArray::clear()
 	memset(buf, 0, sizeof(buf));
 }
 
+short ByteArray::readShort()
+{
+//	short value = buf[plusPosition(1)]<<8 | buf[getPosition()];
+	short value = *((short*)&buf[getPosition()]);
+	plusPosition(2);
+	return value;
+}
+
+unsigned short ByteArray::readUnsignedShort()
+{
+//	unsigned short value = buf[plusPosition(1)]<<8 | buf[getPosition()];
+	unsigned short value = *((unsigned short*)&buf[getPosition()]);
+	plusPosition(2);
+	return value;
+}
+
 int ByteArray::readInt()
 {
-	int value = buf[plusPosition(1)]<<24 | buf[plusPosition(1)]<<16 | buf[plusPosition(1)]<<8 | buf[plusPosition(1)];
+	int value = buf[plusPosition(1)]<<24 | buf[plusPosition(1)]<<16 | buf[plusPosition(1)]<<8 | buf[getPosition()];
 	
 	return value;
 }
 
 unsigned int ByteArray::readUnsignedInt()
 {
-	int value = buf[plusPosition(1)]<<24 | buf[plusPosition(1)]<<16 | buf[plusPosition(1)]<<8 | buf[plusPosition(1)];
+	unsigned int value = buf[plusPosition(1)]<<24 | buf[plusPosition(1)]<<16 | buf[plusPosition(1)]<<8 | buf[getPosition()];
 	return value;
 }
 
