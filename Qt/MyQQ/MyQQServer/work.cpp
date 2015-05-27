@@ -5,12 +5,12 @@ using namespace std;
 Work::Work(int port)
 {
 	//获得服务端socket描述符 
-	socketfd = socket_create(port);
+	socketfd = pub.socket_create(port);
 	if(socketfd == -1)//socket创建失败程序退出 
 	{
 		exit(-1); 
 	}
-	setnonblocking(socketfd); //设置为非阻塞 
+	pub.setnonblocking(socketfd); //设置为非阻塞 
 	
 	if(sqlClient.initMySQL(&mysql) == -1)//如果初始化mysql失败则退出程序 
 	{
@@ -27,6 +27,115 @@ Work::~Work()
 {
 	
 }
+
+//多客户端拼包和粘包不知道怎么处理。以后解决。 
+int Work::recvSocket(int fd)
+{
+	ByteArray ba;
+	int ret = 0;
+	
+	int recvSize = -1; 
+	unsigned int totalRecv = 0;
+	
+	do
+	{
+		recvSize = recv(fd, ba.buf, sizeof(ba.buf), 0);
+		cout << "recvSize:: "<<recvSize<<endl;
+		if(recvSize > 0)
+		{	
+			totalRecv += recvSize;
+		}
+		ba.setBytesAvailable(totalRecv);
+		ba.setBufLen(totalRecv);
+		
+	}while(recvSize > 0);
+	//假如消息是从头开始接收的
+	//假如不足四个字节 则不知道怎么处理，所以先要缓存起来 
+	cout<< "total::  "<<ba.getBufLen()<<endl;
+	if(ba.getBufLen() > 4)//取得消息头和消息长度 
+	{
+		len = ba.readUnsignedShort();//取得长度 
+		cout<<"len:: "<<len<<endl;
+		head = ba.readUnsignedShort();//取得协议号
+		cout<<"head:: "<<head<<endl;
+		
+		if( ba.getBufLen() >= len )//包含了至少一条完整的消息 
+		{		
+			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			handleMsg(head, ba, fd);
+		}
+ 
+	}
+			
+	if(recvSize == -1)    
+    {   
+    	if(errno == EINTR)//还要继续再读 
+		{
+    		cout<<"ERRNO IS EINTR"<<endl;
+    		ret = 0;
+		}
+		else if(errno == EAGAIN)
+		{
+			cout<<"ERRNO IS EINTR"<<endl;
+			ret = 0;	
+		}
+		else
+		{
+			cout<<"socket listen failed ! " << strerror(errno) << endl;
+       		ret = - 1; 
+		}
+    }    
+    else if(recvSize == 0)//正常退出
+    {   
+		cout<<"socket closed failed ! " << strerror(errno) << endl;   
+        ret = -1;      
+    }   
+
+	return ret;
+}
+
+int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
+{
+	switch(id)
+	{
+		case 100:
+			cout<< "Protocol id: "<< id << endl;
+			struct LoginRecvMsg loginRecv; 
+			memset(&loginRecv, 0, sizeof(loginRecv));
+			memcpy(&loginRecv, &ba.buf[ba.getPosition()], sizeof(loginRecv));
+			cout<<loginRecv.userName<<endl;
+			cout<<loginRecv.password<<endl;
+			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			verifyUserData(loginRecv, fd);
+//			cout<< ba.readUTFBytes(100) << endl;
+//			cout<< ba.readUTFBytes(100) << endl;
+			break;
+		default:
+			cout<<"Unkonwn Protocol " << id << endl; 
+			break;
+	}
+	
+	return 0;
+}
+
+int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
+{
+	char buf[100] = "hello Ares! Your password is 123465!";
+	int sendSize = 0;
+	cout<<loginRecv.userName<<" "<<strcmp(loginRecv.userName, "Ares")<<endl;
+	if(!strcmp(loginRecv.userName, "Ares") && !strcmp(loginRecv.password, "123456"))
+	{
+		sendSize = send(fd, buf, sizeof(buf), 0);
+		cout << "sendSize:: "<<sendSize<<endl;
+	}
+	return 0;	
+}
+
+int getUserPassWordByID(int id)
+{
+	return 0;
+}
+
 
 int Work::userLogout(int clientSd)
 {
@@ -66,13 +175,13 @@ void Work::run()
         	 //假如是服务端的描述符则执行accept， 并且将客户端的 描述符 添加到池中   
             if(events[i].data.fd == socketfd)  
             {  
-                client_skfd = acceptSocket(socketfd);  
+                client_skfd = pub.acceptSocket(socketfd);  
                 if(client_skfd >= 0)  
                 {  
                     ev.data.fd = client_skfd;  
                     ev.events = EPOLLIN | EPOLLERR | EPOLLHUP;  
                     epoll_ctl(epfd, EPOLL_CTL_ADD, client_skfd, &ev);   
-                    setnonblocking(client_skfd); //设置为非阻塞 
+                    pub.setnonblocking(client_skfd); //设置为非阻塞 
 					continue; 
                 }  
             }  

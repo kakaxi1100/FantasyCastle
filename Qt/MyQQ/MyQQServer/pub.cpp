@@ -1,17 +1,16 @@
 #include "pub.h"
 
+PUB::PUB()
+{
 
-using namespace std;
+}
 
-unsigned short head = 0;
+PUB::~PUB()
+{
+	
+}
 
-unsigned short len = 0;
-
-unsigned char buf[4] = {0};//存消息头和消息长度 
-
-bool parseOver = false;
-
-void setDeamon()
+void PUB::setDeamon()
 {
 	//1、创建孤儿进程
 	pid_t pid, sid;
@@ -44,7 +43,7 @@ void setDeamon()
 }
 
 //先创建服务端的socket   
-int socket_create(int port)  
+int PUB::socket_create(int port)  
 {  
     //1,创建SOCKET   
     int sockfd  = socket(AF_INET, SOCK_STREAM, 0);  
@@ -85,7 +84,7 @@ int socket_create(int port)
 }
 
 //创建非阻塞  
- void setnonblocking(int fd)  
+ void PUB::setnonblocking(int fd)  
  {  
     int opts = fcntl(fd, F_GETFL);  
     if(opts < 0)  
@@ -124,7 +123,7 @@ void catchSignal(int type)
 } 
 
 //接收来自客户端的ID 
-int acceptSocket(int fd)  
+int PUB::acceptSocket(int fd)  
 {  
     struct sockaddr_in client_addr;    
     socklen_t client_socklen = sizeof(client_addr);
@@ -139,108 +138,7 @@ int acceptSocket(int fd)
     return client_sockfd;    
 }
 
-//多客户端拼包和粘包不知道怎么处理。以后解决。 
-int recvSocket(int fd)
-{
-	ByteArray ba;
-	int ret = 0;
-	
-	int recvSize = -1; 
-	unsigned int totalRecv = 0;
-	
-	do
-	{
-		recvSize = recv(fd, ba.buf, sizeof(ba.buf), 0);
-		cout << "recvSize:: "<<recvSize<<endl;
-		if(recvSize > 0)
-		{	
-			totalRecv += recvSize;
-		}
-		ba.setBytesAvailable(totalRecv);
-		ba.setBufLen(totalRecv);
-		
-	}while(recvSize > 0);
-	//假如消息是从头开始接收的
-	//假如不足四个字节 则不知道怎么处理，所以先要缓存起来 
-	cout<< "total::  "<<ba.getBufLen()<<endl;
-	if(ba.getBufLen() > 4)//取得消息头和消息长度 
-	{
-		len = ba.readUnsignedShort();//取得长度 
-		cout<<"len:: "<<len<<endl;
-		head = ba.readUnsignedShort();//取得协议号
-		cout<<"head:: "<<head<<endl;
-		
-		if( ba.getBufLen() >= len )//包含了至少一条完整的消息 
-		{		
-			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
-			handleMsg(head, ba, fd);
-		}
- 
-	}
-			
-	if(recvSize == -1)    
-    {   
-    	if(errno == EINTR)//还要继续再读 
-		{
-    		cout<<"ERRNO IS EINTR"<<endl;
-    		ret = 0;
-		}
-		else if(errno == EAGAIN)
-		{
-			cout<<"ERRNO IS EINTR"<<endl;
-			ret = 0;	
-		}
-		else
-		{
-			cout<<"socket listen failed ! " << strerror(errno) << endl;
-       		ret = - 1; 
-		}
-    }    
-    else if(recvSize == 0)//正常退出
-    {   
-		cout<<"socket closed failed ! " << strerror(errno) << endl;   
-        ret = -1;      
-    }   
 
-	return ret;
-}
-
-int handleMsg(unsigned short id, ByteArray &ba, int fd)
-{
-	switch(id)
-	{
-		case 100:
-			cout<< "Protocol id: "<< id << endl;
-			struct LoginRecvMsg loginRecv; 
-			memset(&loginRecv, 0, sizeof(loginRecv));
-			memcpy(&loginRecv, &ba.buf[ba.getPosition()], sizeof(loginRecv));
-			cout<<loginRecv.userName<<endl;
-			cout<<loginRecv.password<<endl;
-			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
-			verifyUserData(loginRecv, fd);
-//			cout<< ba.readUTFBytes(100) << endl;
-//			cout<< ba.readUTFBytes(100) << endl;
-			break;
-		default:
-			cout<<"Unkonwn Protocol " << id << endl; 
-			break;
-	}
-	
-	return 0;
-}
-
-int verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
-{
-	char buf[100] = "hello Ares! Your password is 123465!";
-	int sendSize = 0;
-	cout<<loginRecv.userName<<" "<<strcmp(loginRecv.userName, "Ares")<<endl;
-	if(!strcmp(loginRecv.userName, "Ares") && !strcmp(loginRecv.password, "123456"))
-	{
-		sendSize = send(fd, buf, sizeof(buf), 0);
-		cout << "sendSize:: "<<sendSize<<endl;
-	}
-	return 0;	
-}
 /*//接收消息    
 int recvSocket(int fd)    
 {      

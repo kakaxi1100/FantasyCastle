@@ -8,6 +8,8 @@
 #include <string.h>
 #include <errno.h>
 #include "clientsql.h"
+#include "byteArray.h"
+
 
 #define CLINETCOUNT 100
 
@@ -22,8 +24,19 @@ public:
 private:
 	int socketfd;
 	
+	PUB pub;
 	MYSQL mysql;
 	ClientSQL sqlClient;
+	
+		
+	unsigned short head;
+	unsigned short len;
+		
+	int recvSocket(int fd);
+	int handleMsg(unsigned short id, ByteArray &ba, int fd);
+	int verifyUserData(struct LoginRecvMsg &loginRecv, int fd);
+	
+	int getUserPassWordByID(int id);
 };
 
 #endif

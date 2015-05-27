@@ -14,23 +14,7 @@
 #include <netinet/in.h> 
 #include <signal.h>
 #include <stdio.h>
-
-
-void setDeamon();
-
-int socket_create(int port);
-
-void setnonblocking(int fd);
-
-int signalTemplet(int signo, void(*func)(int));
-
-void catchSignal(int type);
-
-int acceptSocket(int fd); 
-
-int recvSocket(int fd);
-
-int handleMsg(unsigned short id, ByteArray &ba, int fd);
+using namespace std;
 
 struct LoginRecvMsg
 {
@@ -38,6 +22,27 @@ struct LoginRecvMsg
 	char password[100];	
 };
 
-int verifyUserData(struct LoginRecvMsg &loginRecv, int fd);
+int signalTemplet(int signo, void(*func)(int));
+	
+void catchSignal(int type);
+
+class PUB
+{
+public:
+	
+	PUB();
+	~PUB();
+	
+	void setDeamon();
+
+	int socket_create(int port);
+	
+	void setnonblocking(int fd);
+
+	int acceptSocket(int fd); 
+
+private:
+};
+
 
 #endif
