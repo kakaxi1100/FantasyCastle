@@ -11,6 +11,16 @@ Work::Work(int port)
 		exit(-1); 
 	}
 	setnonblocking(socketfd); //设置为非阻塞 
+	
+	if(sqlClient.initMySQL(&mysql) == -1)//如果初始化mysql失败则退出程序 
+	{
+		exit(EXIT_FAILURE);
+	} 
+	
+	if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+    {  
+       exit(EXIT_FAILURE); 
+    }
 }
 
 Work::~Work()
@@ -71,7 +81,7 @@ void Work::run()
             if(events[i].events & EPOLLIN)  
             {  
                 client_skfd = events[i].data.fd;
-                if(recvSocket(client_skfd) <= 0)  
+                if(recvSocket(client_skfd) < 0)  
                 {  
                 	userLogout(client_skfd);
                     close(client_skfd);  

@@ -180,8 +180,21 @@ int recvSocket(int fd)
 			
 	if(recvSize == -1)    
     {   
-//    	cout<<"socket listen failed ! " << strerror(errno) << endl;
-//        ret = - 1;      
+    	if(errno == EINTR)//还要继续再读 
+		{
+    		cout<<"ERRNO IS EINTR"<<endl;
+    		ret = 0;
+		}
+		else if(errno == EAGAIN)
+		{
+			cout<<"ERRNO IS EINTR"<<endl;
+			ret = 0;	
+		}
+		else
+		{
+			cout<<"socket listen failed ! " << strerror(errno) << endl;
+       		ret = - 1; 
+		}
     }    
     else if(recvSize == 0)//正常退出
     {   
@@ -189,7 +202,7 @@ int recvSocket(int fd)
         ret = -1;      
     }   
 
-	return 1;
+	return ret;
 }
 
 int handleMsg(unsigned short id, ByteArray &ba, int fd)

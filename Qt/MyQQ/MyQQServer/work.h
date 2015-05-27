@@ -7,6 +7,7 @@
 #include <sys/epoll.h>
 #include <string.h>
 #include <errno.h>
+#include "clientsql.h"
 
 #define CLINETCOUNT 100
 
@@ -20,6 +21,9 @@ public:
 	int userLogout(int clientSd);
 private:
 	int socketfd;
+	
+	MYSQL mysql;
+	ClientSQL sqlClient;
 };
 
 #endif

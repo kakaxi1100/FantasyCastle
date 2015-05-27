@@ -8,6 +8,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+	system("stty erase ^H");
 	/*if(argc < 2)
 	{
 		cout << "please input server port !" <<endl;
