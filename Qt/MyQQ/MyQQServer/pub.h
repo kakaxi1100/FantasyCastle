@@ -16,12 +16,6 @@
 #include <stdio.h>
 using namespace std;
 
-struct LoginRecvMsg
-{
-	char userName[100];
-	char password[100];	
-};
-
 int signalTemplet(int signo, void(*func)(int));
 	
 void catchSignal(int type);

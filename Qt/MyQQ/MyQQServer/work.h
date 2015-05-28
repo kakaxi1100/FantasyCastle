@@ -9,9 +9,10 @@
 #include <errno.h>
 #include "clientsql.h"
 #include "byteArray.h"
-
+#include "globalData.h"
 
 #define CLINETCOUNT 100
+
 
 class Work
 {
@@ -27,7 +28,6 @@ private:
 	PUB pub;
 	MYSQL mysql;
 	ClientSQL sqlClient;
-	
 		
 	unsigned short head;
 	unsigned short len;

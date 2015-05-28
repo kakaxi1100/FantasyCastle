@@ -17,7 +17,6 @@ LIB=-lmysqlclient \
 EXE=qqserver
 
 all:$(OBJS)
-#$(CC) -o $(EXE) $(OBJS) $(LIB)
 	$(CC) -o $(EXE) $(OBJS) $(LIB)
 	@echo '---------Build Success !----------------'
 

@@ -21,6 +21,12 @@ Work::Work(int port)
     {  
        exit(EXIT_FAILURE); 
     }
+    
+    //生成sql语句 设置字符集 
+	char sql[50] = {0};
+	sprintf(sql,"set names utf8");
+	cout<<"sql sentence: " <<sql<<endl;
+	sqlClient.sendAndResponseMySQL(&mysql, sql);
 }
 
 Work::~Work()
@@ -67,17 +73,17 @@ int Work::recvSocket(int fd)
  
 	}
 			
-	if(recvSize == -1)    
+	if(recvSize < 0)    
     {   
     	if(errno == EINTR)//还要继续再读 
 		{
     		cout<<"ERRNO IS EINTR"<<endl;
-    		ret = 0;
+    		ret = 1;
 		}
 		else if(errno == EAGAIN)
 		{
 			cout<<"ERRNO IS EINTR"<<endl;
-			ret = 0;	
+			ret = 1;	
 		}
 		else
 		{
@@ -88,8 +94,13 @@ int Work::recvSocket(int fd)
     else if(recvSize == 0)//正常退出
     {   
 		cout<<"socket closed failed ! " << strerror(errno) << endl;   
-        ret = -1;      
-    }   
+        ret = 0;
+		      
+    }
+	else
+	{
+    	ret =  1;
+	}   
 
 	return ret;
 }
@@ -100,12 +111,16 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 	{
 		case 100:
 			cout<< "Protocol id: "<< id << endl;
+			
 			struct LoginRecvMsg loginRecv; 
 			memset(&loginRecv, 0, sizeof(loginRecv));
 			memcpy(&loginRecv, &ba.buf[ba.getPosition()], sizeof(loginRecv));
-			cout<<loginRecv.userName<<endl;
-			cout<<loginRecv.password<<endl;
+			
+			cout<<"UserInfo: "<<loginRecv.userID<<"  "<<loginRecv.password<<endl;
+			
+			ba.plusPosition(sizeof(loginRecv));
 			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			
 			verifyUserData(loginRecv, fd);
 //			cout<< ba.readUTFBytes(100) << endl;
 //			cout<< ba.readUTFBytes(100) << endl;
@@ -120,14 +135,53 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 
 int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 {
-	char buf[100] = "hello Ares! Your password is 123465!";
+	//生成sql语句 
+	char sql[100] = {0};
+	sprintf(sql,"select ID from userinfo where ID=%d", loginRecv.userID);
+	int result = sqlClient.sendAndResponseMySQL(&mysql, sql);
+	
+	struct LoginSendMsg loginSendMsg;
+	memset(&loginSendMsg, 0, sizeof(loginSendMsg));
+	
+	if(result > 0)//如果有这个用户则看看密码对不对 
+	{
+
+		loginSendMsg.len = sizeof(loginSendMsg);
+		loginSendMsg.protocolID = 101;
+		
+		memset(sql, 0, sizeof(sql));
+		
+		sprintf(sql,"select PW from userinfo where PW=%s", loginRecv.password);
+		result = sqlClient.sendAndResponseMySQL(&mysql, sql);
+		
+		if(result > 0)//密码正确 
+		{
+			loginSendMsg.loginType = 0;
+			cout<<"User Login !!"<<endl;
+		}
+		else//密码错误 
+		{
+			loginSendMsg.loginType = 2;
+			cout<<"User Password is Invalid !!"<<endl;	
+		} 
+	}
+	else
+	{
+		loginSendMsg.loginType = 1;
+		cout<<"User ID is Invalid !!"<<endl;
+	}
+	
+	int sendSize = send(fd, &loginSendMsg, sizeof(loginSendMsg), 0);
+	cout << "sendSize: "<<sendSize<<endl;
+	
+/*	char buf[100] = "hello Ares! Your password is 123465!";
 	int sendSize = 0;
-	cout<<loginRecv.userName<<" "<<strcmp(loginRecv.userName, "Ares")<<endl;
+	cout<<loginRecv.userName<<" "<<strcmp(loginRecv.userID, "Ares")<<endl;
 	if(!strcmp(loginRecv.userName, "Ares") && !strcmp(loginRecv.password, "123456"))
 	{
 		sendSize = send(fd, buf, sizeof(buf), 0);
 		cout << "sendSize:: "<<sendSize<<endl;
-	}
+	}*/
 	return 0;	
 }
 
@@ -190,7 +244,7 @@ void Work::run()
             if(events[i].events & EPOLLIN)  
             {  
                 client_skfd = events[i].data.fd;
-                if(recvSocket(client_skfd) < 0)  
+                if(recvSocket(client_skfd) <= 0)  
                 {  
                 	userLogout(client_skfd);
                     close(client_skfd);  

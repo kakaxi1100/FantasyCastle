@@ -35,14 +35,14 @@ MySocket::~MySocket()
     }
 }
 
-void MySocket::socketConnect(QString userName, QString password, QString ip, int port)
+void MySocket::socketConnect(uint userID, QString password, QString ip, int port)
 {
-    qDebug()<<"socketConnect "<<userName<<"   "<<password<<"   "<<ip<<"   "<< port<<endl;
+    qDebug()<<"socketConnect "<<userID<<"   "<<password<<"   "<<ip<<"   "<< port<<endl;
     myTcpSocket->abort();//取消已经有的连接
     QHostAddress hostAddr(ip);
     myTcpSocket->connectToHost(hostAddr, port);
 
-    addClient(userName, password);
+    addClient(userID, password);
 }
 
 void MySocket::socketConnected()
@@ -60,11 +60,29 @@ struct Test
 void MySocket::loginSendMsg()
 {
     QByteArray outblock;//输出缓冲区
+    QDataStream sendout(&outblock, QIODevice::WriteOnly);
+    sendout.setByteOrder(QDataStream::LittleEndian);
+
     struct LoginSend loginSend;
     memset(&loginSend, 0, sizeof(loginSend));
     loginSend.protocolID = 100;
+//---------------第二版 传用户ID过去---------------------------------------------------------
 
-    //注意必须转化一个 处理一个，不能都转化完后再处理，否则，所有的 数据都会是一个值
+    loginSend.userID = clientMap[0]->userID;
+    const char *password = clientMap[0]->password.toStdString().data();
+    strncpy(loginSend.password,password, strlen(password));
+
+    sendout<<qint16(sizeof(loginSend));//先用ushort发长度过去
+    sendout<< loginSend.protocolID;//再发协议ID过去
+    sendout<<loginSend.userID;//再发用户ID过去
+    sendout.writeRawData(loginSend.password, sizeof(loginSend.password));//最后发密码过去
+
+    qDebug()<<loginSend.userID<<"  "<<loginSend.password;
+    qint64 q =  myTcpSocket->write(outblock, sizeof(loginSend) + 2);//还要加上此消息长度
+    qDebug()<<"send length:: "<<q;
+
+//---------------第一版 传用户名字过去--------------------------------------------------------
+/*    //注意必须转化一个 处理一个，不能都转化完后再处理，否则，所有的 数据都会是一个值
     //比如：
     //const char *userName = QString("Ares").toStdString().data();
     //const char *password = QString("123456")..toStdString().data();
@@ -93,7 +111,7 @@ void MySocket::loginSendMsg()
     qint64 q =  myTcpSocket->write(outblock, sizeof(loginSend) + 2);//还要加上此消息长度
     qDebug()<<"send length:: "<<q;
     //outblock.resize(0);
-
+*/
 //----------------------for test----------------------------------
 //----------------------"//"表示公用测试块-------------------------
 
@@ -144,10 +162,37 @@ void MySocket::loginSendMsg()
 
 void MySocket::socketRecv()
 {
+    if(myTcpSocket->bytesAvailable() < (int)sizeof(quint16))
+    {
+        qDebug()<<"bytesAvailable not enough !";
+        return;
+    }
+
     QDataStream in(myTcpSocket);
+    uint len = 0;
+    uint protocolID = 0;
+
+    in>>len;
+    in>>protocolID;
+    qDebug()<<"protocol info: "<<len<<"  "<<protocolID;
+    switch(protocolID)
+    {
+        case 101:
+            struct LoginRecv loginRecv;
+            in>>loginRecv.loginType;
+            qDebug()<<"到底有没有收到！！！"<<loginRecv.loginType;
+            break;
+        default:
+            break;
+    }
+
+
+//------------for test------------------------
+   /* QDataStream in(myTcpSocket);
     char buf[100] = {0};
     in.readRawData(buf, sizeof(buf));
-    qDebug()<<"the message is: "<<buf;
+    qDebug()<<"the message is: "<<buf;*/
+//--------------------------------------------
 }
 
 void MySocket::socketSend()
@@ -160,12 +205,13 @@ void MySocket::socketError()
     qDebug()<<myTcpSocket->errorString();
 }
 
-void MySocket::addClient(QString userName, QString password)
+void MySocket::addClient(uint userID, QString password)
 {
     struct ClientInfo* clientInfo = new ClientInfo();
 
     clientInfo->id = clientID;
-    clientInfo->userName = userName;
+    clientInfo->userID = userID;
+//    clientInfo->userName = userName;
     clientInfo->password = password;
 
     clientMap[clientInfo->id] = clientInfo;

@@ -42,30 +42,35 @@ int ClientSQL::connectMySQL(MYSQL* mysql, const char* host, const char* userName
   
 int ClientSQL::sendAndResponseMySQL(MYSQL* mysql, const char* sql)  
 {  
+	int ret = 0;
     if(mysql == NULL)  
     {  
         printf("MYSQL is NULL !\n");  
         return -1;  
     }  
       
-    int ret = mysql_query(mysql, sql);  
+    ret = mysql_query(mysql, sql);  
       
     if(ret != 0)  
     {  
-        printf("%s\n", mysql_error(mysql));  
+        printf("%s\n", mysql_error(mysql));  //查询语句错误 
         return -1;  
     }  
       
     MYSQL_RES *result = mysql_store_result(mysql);  
-    if(result == NULL)  
+    if(result == NULL)//sql 语句正确 但是并非会得到 行的语句 就返回 0 
     {  
         printf("Query OK, %u rows affected\n", (unsigned int)mysql_affected_rows(mysql));  
-        return 0;  
-    }  
+        ret = 0;  
+        
+    }else{
+    	
+    	ret = 1;//否者有结果就返回1 
+	}  
       
-    MYSQL_FIELD *field;  
+    /*MYSQL_FIELD *field;  
     int cols = 0;  
-    while((field = mysql_fetch_field(result)) != NULL)  
+    while((field = mysql_fetch_field(result)) != NULL)  //取得有多少列 
     {  
             printf("%s\t", field->name);  
             cols++;  
@@ -74,7 +79,7 @@ int ClientSQL::sendAndResponseMySQL(MYSQL* mysql, const char* sql)
       
     MYSQL_ROW row;  
       
-    while((row = mysql_fetch_row(result)) != NULL)  
+    while((row = mysql_fetch_row(result)) != NULL)  //取得有每一行的数据 
     {  
         int i = 0;  
         for(; i < cols; i++)  
@@ -84,9 +89,10 @@ int ClientSQL::sendAndResponseMySQL(MYSQL* mysql, const char* sql)
         printf("\n");  
     }  
       
-    printf("Query OK, %u rows affected\n", (unsigned int)mysql_affected_rows(mysql));  
+    printf("Query OK, %u rows affected\n", (unsigned int)mysql_affected_rows(mysql));*/  
     mysql_free_result(result);  
-    return 0;  
+    
+    return ret;  
 }  
   
 int ClientSQL::closeMySQL(MYSQL* mysql)  
