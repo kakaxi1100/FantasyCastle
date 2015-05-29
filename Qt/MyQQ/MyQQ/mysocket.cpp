@@ -167,10 +167,11 @@ void MySocket::socketRecv()
         qDebug()<<"bytesAvailable not enough !";
         return;
     }
-
+    qDebug()<<"Recv len: "<<myTcpSocket->bytesAvailable();
     QDataStream in(myTcpSocket);
-    uint len = 0;
-    uint protocolID = 0;
+    in.setByteOrder(QDataStream::LittleEndian);
+    ushort len = 0;
+    ushort protocolID = 0;
 
     in>>len;
     in>>protocolID;
@@ -180,7 +181,23 @@ void MySocket::socketRecv()
         case 101:
             struct LoginRecv loginRecv;
             in>>loginRecv.loginType;
-            qDebug()<<"到底有没有收到！！！"<<loginRecv.loginType;
+            if(loginRecv.loginType == 0)
+            {
+                qDebug()<<"loginType Login Success!";
+            }
+            else if(loginRecv.loginType == 1)
+            {
+                qDebug()<<"loginType UserID Error!";
+            }
+            else if(loginRecv.loginType == 2)
+            {
+                 qDebug()<<"loginType Password Error!";
+            }
+            else
+            {
+                qDebug()<<"loginType Unknown Error!";
+            }
+
             break;
         default:
             break;

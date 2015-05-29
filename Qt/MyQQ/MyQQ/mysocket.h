@@ -24,7 +24,7 @@ struct LoginSend
 
 struct LoginRecv
 {
-    uint loginType;
+    uchar loginType;
 };
 
 class MySocket : QObject
