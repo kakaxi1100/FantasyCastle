@@ -84,6 +84,7 @@ void MyLogin::loginClick()
 //    {
 //        myqq->show();
 //    }
+
     mysocket->socketConnect(account->text().toUInt(), password->text(),hostIP->text(), hostPort->text().toInt());
 }
 
