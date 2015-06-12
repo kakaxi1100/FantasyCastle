@@ -6,7 +6,7 @@
 
 QT       += core gui
 QT += network
-
+CONFIG += c++11
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = MyQQ
@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     mywidget.cpp \
     mytoolboxcontainer.cpp \
     mysocket.cpp \
-    myevent.cpp
+    myevent.cpp \
+    myeventdispatcher.cpp \
+    global.cpp
 
 HEADERS  += widget.h \
     mytoolbox.h \
@@ -32,7 +34,9 @@ HEADERS  += widget.h \
     mywidget.h \
     mytoolboxcontainer.h \
     mysocket.h \
-    myevent.h
+    myevent.h \
+    myeventdispatcher.h \
+    global.h
 
 RESOURCES += \
     headerImg.qrc

@@ -28,6 +28,8 @@ private:
 
     MySocket* mysocket;
     MyWidget* myqq;
+public:
+    void handleLoginSuccess(MyEvent &e);
 };
 
 #endif // MYLOGIN_H

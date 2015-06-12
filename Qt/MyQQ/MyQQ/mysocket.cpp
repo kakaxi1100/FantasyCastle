@@ -6,6 +6,9 @@
 #include <QDebug>
 #include <QtEndian>
 #include <iostream>
+#include "myevent.h"
+#include <memory>
+#include "global.h"
 
 using namespace std;
 
@@ -184,6 +187,9 @@ void MySocket::socketRecv()
             if(loginRecv.loginType == 0)
             {
                 qDebug()<<"loginType Login Success!";
+
+                shared_ptr<MyEvent> e = make_shared<MyEvent>(LOGIN_SUCCESS);
+                MyEventDispatcher::dispatchEvent(e);
             }
             else if(loginRecv.loginType == 1)
             {

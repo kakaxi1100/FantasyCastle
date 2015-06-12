@@ -6,6 +6,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QMap>
+#include "myeventdispatcher.h"
 
 struct ClientInfo
 {

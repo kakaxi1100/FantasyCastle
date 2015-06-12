@@ -3,6 +3,9 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QDebug>
+#include "myeventdispatcher.h"
+#include "global.h"
+#include "myevent.h"
 
 MyLogin::MyLogin(QWidget *parent) :
     QWidget(parent)
@@ -75,15 +78,24 @@ MyLogin::MyLogin(QWidget *parent) :
     myqq = new MyWidget();
     //socket
     mysocket = new MySocket();
+
+    //event
+    MyEventDispatcher::addEventListener(LOGIN_SUCCESS, &handleLoginSuccess);
+}
+
+void MyLogin::handleLoginSuccess(MyEvent& e)
+{
+//    if(myqq->isHidden() == true)
+//    {
+//        myqq->show();
+//        this->hide();
+//    }
 }
 
 void MyLogin::loginClick()
 {
     qDebug()<<"login clicked!"<<endl;
-//    if(myqq->isHidden() == true)
-//    {
-//        myqq->show();
-//    }
+
 
     mysocket->socketConnect(account->text().toUInt(), password->text(),hostIP->text(), hostPort->text().toInt());
 }
