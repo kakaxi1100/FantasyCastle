@@ -1,19 +1,16 @@
 #ifndef MYEVENT_H
 #define MYEVENT_H
 
-#include <string>
 #include <iostream>
-
+#include <string>
 using namespace std;
-
 class MyEvent
 {
 public:
     MyEvent(string type);
     ~MyEvent();
-
-    string &getType();
-    void setType(string value);
+    string getType();
+protected:
 private:
     string _type;
 };

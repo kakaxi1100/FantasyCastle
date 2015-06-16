@@ -187,9 +187,8 @@ void MySocket::socketRecv()
             if(loginRecv.loginType == 0)
             {
                 qDebug()<<"loginType Login Success!";
-
                 shared_ptr<MyEvent> e = make_shared<MyEvent>(LOGIN_SUCCESS);
-                MyEventDispatcher::dispatchEvent(e);
+                EventDispatcher<MyLogin>::dispatchEvent(e);
             }
             else if(loginRecv.loginType == 1)
             {

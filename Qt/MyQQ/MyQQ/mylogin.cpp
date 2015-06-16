@@ -80,16 +80,18 @@ MyLogin::MyLogin(QWidget *parent) :
     mysocket = new MySocket();
 
     //event
-    MyEventDispatcher::addEventListener(LOGIN_SUCCESS, &handleLoginSuccess);
+    shared_ptr<MyLogin> t(this);
+    EventDispatcher<MyLogin>::addEventListener(LOGIN_SUCCESS, t, &MyLogin::handleLoginSuccess);
 }
 
 void MyLogin::handleLoginSuccess(MyEvent& e)
 {
-//    if(myqq->isHidden() == true)
-//    {
-//        myqq->show();
-//        this->hide();
-//    }
+    cout<< e.getType() <<endl;
+    if(myqq->isHidden() == true)
+    {
+        myqq->show();
+        this->hide();
+    }
 }
 
 void MyLogin::loginClick()
