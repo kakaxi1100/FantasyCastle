@@ -77,11 +77,18 @@ MyLogin::MyLogin(QWidget *parent) :
     //myqq
     myqq = new MyWidget();
     //socket
-    mysocket = new MySocket();
+    mysocket = MySocket::getInstance();
 
     //event
     shared_ptr<MyLogin> t(this);
-    EventDispatcher<MyLogin>::addEventListener(LOGIN_SUCCESS, t, &MyLogin::handleLoginSuccess);
+    EventDispatcher<MyLogin>::addEventListener(LOGIN_RGE_SUCCESS, t, &MyLogin::handleLoginSuccess);
+    EventDispatcher<MyLogin>::addEventListener(LOGIN_RGE_FAILURE, t, &MyLogin::handleLoginFailure);
+}
+
+void MyLogin::handleLoginFailure(MyEvent& e)
+{
+    cout<< e.getType() <<endl;
+    enableBtns(true);
 }
 
 void MyLogin::handleLoginSuccess(MyEvent& e)
@@ -97,9 +104,9 @@ void MyLogin::handleLoginSuccess(MyEvent& e)
 void MyLogin::loginClick()
 {
     qDebug()<<"login clicked!"<<endl;
-
-
-    mysocket->socketConnect(account->text().toUInt(), password->text(),hostIP->text(), hostPort->text().toInt());
+    enableBtns(false);
+    mysocket->setConnectType(1);
+    mysocket->socketConnect(account->text().toUInt(), password->text(),hostIP->text(), hostPort->text().toInt());//链接服务器
 }
 
 void MyLogin::cancelClick()
@@ -111,4 +118,13 @@ void MyLogin::cancelClick()
 void MyLogin::regClick()
 {
     qDebug()<<"reg clicked!"<<endl;
+    enableBtns(false);
+    mysocket->setConnectType(2);
+    mysocket->socketConnect(account->text().toUInt(), password->text(),hostIP->text(), hostPort->text().toInt());
+}
+
+void MyLogin::enableBtns(bool _isCan)
+{
+    login->setEnabled(_isCan);
+    reg->setEnabled(_isCan);
 }

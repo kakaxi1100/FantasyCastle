@@ -29,7 +29,11 @@ private:
     MySocket* mysocket;
     MyWidget* myqq;
 public:
+    void enableBtns(bool _isCan);
+
     void handleLoginSuccess(MyEvent &e);
+    void handleLoginFailure(MyEvent &e);
+
 };
 
 #endif // MYLOGIN_H

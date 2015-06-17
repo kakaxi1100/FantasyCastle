@@ -34,7 +34,9 @@ private:
 		
 	int recvSocket(int fd);
 	int handleMsg(unsigned short id, ByteArray &ba, int fd);
+	
 	int verifyUserData(struct LoginRecvMsg &loginRecv, int fd);
+	int verifyRegEvent(struct RegRecvMsg &regRecv, int fd);
 	
 	int getUserPassWordByID(int id);
 };

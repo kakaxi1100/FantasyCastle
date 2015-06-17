@@ -9,6 +9,7 @@ using namespace std;
 
 typedef void(*EVENTFUN)(MyEvent&);
 
-extern const string LOGIN_SUCCESS;
+extern const string LOGIN_RGE_SUCCESS;
+extern const string LOGIN_RGE_FAILURE;
 
 #endif // GLOBAL_H

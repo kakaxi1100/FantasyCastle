@@ -125,10 +125,66 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 //			cout<< ba.readUTFBytes(100) << endl;
 //			cout<< ba.readUTFBytes(100) << endl;
 			break;
+		case 200:
+			cout<< "Protocol id: "<< id << endl;
+			struct RegRecvMsg RegRecv; 
+			memset(&RegRecv, 0, sizeof(RegRecv));
+			memcpy(&RegRecv, &ba.buf[ba.getPosition()], sizeof(RegRecv));
+			
+			cout<<"UserInfo: "<<RegRecv.userID<<"  "<<RegRecv.password<<endl;
+			
+			ba.plusPosition(sizeof(RegRecv));
+			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			
+			verifyRegEvent(RegRecv, fd);
+			break;
 		default:
 			cout<<"Unkonwn Protocol " << id << endl; 
 			break;
 	}
+	
+	return 0;
+}
+
+int Work::verifyRegEvent(struct RegRecvMsg &regRecv, int fd)
+{
+	//生成sql语句
+	char sql[100] = {0};
+	sprintf(sql, "select ID from userinfo where ID=%d", regRecv.userID);
+	int result = sqlClient.sendAndResponseMySQL(&mysql, sql); 
+	
+	struct RegSendMsg regSendMsg;
+	memset(&regSendMsg, 0, sizeof(regSendMsg));
+	
+	regSendMsg.len = sizeof(regSendMsg);
+	regSendMsg.protocolID = 201;
+	
+	if(result > 0)//如果存在这用户则不能注册  影响的行数至少为1 
+	{
+		regSendMsg.regType = 1;//失败 
+		cout<<"User register Failure!"<<endl;
+	}
+	else if(result == 0)//如果不存在这个用户但是查询结果又成功则可以注册 
+	{
+		regSendMsg.regType = 0;//成功
+		//在数据库中插入值 
+		memset(sql, 0, sizeof(sql));
+		sprintf(sql,"insert userinfo (ID,PW) values (%d, %s)", regRecv.userID, regRecv.password);
+		result = sqlClient.sendAndResponseMySQL(&mysql, sql);
+		if(result >= 0)
+		{
+			cout<<"User register Success!"<<endl;
+		}else{
+			cout<<"insert User Info. Error!"<<endl;
+		}
+	}
+	else
+	{
+		cout<<"verifyRegEvent sql error!!"<<endl;
+	}
+	
+	int sendSize = send(fd, &regSendMsg, sizeof(regSendMsg), 0);
+	cout << "sendSize: "<<sendSize<<endl;
 	
 	return 0;
 }
@@ -143,12 +199,11 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 	struct LoginSendMsg loginSendMsg;
 	memset(&loginSendMsg, 0, sizeof(loginSendMsg));
 	
-	if(result > 0)//如果有这个用户则看看密码对不对 
-	{
-
-		loginSendMsg.len = sizeof(loginSendMsg);
-		loginSendMsg.protocolID = 101;
-		
+	loginSendMsg.len = sizeof(loginSendMsg);
+	loginSendMsg.protocolID = 101;
+	
+	if(result > 0)//如果有这个用户 （即查询结果至少为1） 则看看密码对不对 
+	{	
 		memset(sql, 0, sizeof(sql));
 		
 		sprintf(sql,"select PW from userinfo where PW=%s", loginRecv.password);
@@ -165,10 +220,14 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 			cout<<"User Password is Invalid !!"<<endl;	
 		} 
 	}
-	else
+	else if(result == 0)
 	{
 		loginSendMsg.loginType = 1;
 		cout<<"User ID is Invalid !!"<<endl;
+	}
+	else
+	{
+		cout<<"verifyUserData sql error!!"<<endl;
 	}
 	
 	int sendSize = send(fd, &loginSendMsg, sizeof(loginSendMsg), 0);

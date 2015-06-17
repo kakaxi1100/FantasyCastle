@@ -58,40 +58,42 @@ int ClientSQL::sendAndResponseMySQL(MYSQL* mysql, const char* sql)
     }  
       
     MYSQL_RES *result = mysql_store_result(mysql);  
-    if(result == NULL)//sql 语句正确 但是并非会得到 行的语句 就返回 0 
+    if(result == NULL)//sql 语句正确 但是并非会得到 行的语句 就返回 -2 
     {  
         printf("Query OK, %u rows affected\n", (unsigned int)mysql_affected_rows(mysql));  
-        ret = 0;  
+        ret = -2;  
         
-    }else{
-    	
-    	ret = 1;//否者有结果就返回1 
-	}  
-      
-    /*MYSQL_FIELD *field;  
-    int cols = 0;  
-    while((field = mysql_fetch_field(result)) != NULL)  //取得有多少列 
-    {  
-            printf("%s\t", field->name);  
-            cols++;  
-    }  
-    printf("\n");  
-      
-    MYSQL_ROW row;  
-      
-    while((row = mysql_fetch_row(result)) != NULL)  //取得有每一行的数据 
-    {  
-        int i = 0;  
-        for(; i < cols; i++)  
-        {  
-            printf("%s\t", row[i]);  
-        }  
-        printf("\n");  
-    }  
-      
-    printf("Query OK, %u rows affected\n", (unsigned int)mysql_affected_rows(mysql));*/  
-    mysql_free_result(result);  
-    
+    }else{	  
+		//---------------打印查询结果-------------------
+	    MYSQL_FIELD *field;  
+	    int cols = 0;  
+	    while((field = mysql_fetch_field(result)) != NULL)  //取得有多少列 
+	    {  
+	            printf("%s\t", field->name);  
+	            cols++;  
+	    }  
+	    printf("\n");  
+	      
+	    MYSQL_ROW row;  
+	      
+	    while((row = mysql_fetch_row(result)) != NULL)  //取得有每一行的数据 
+	    {  
+	        int i = 0;  
+	        for(; i < cols; i++)  
+	        {  
+	            printf("%s\t", row[i]);  
+	        }  
+	        printf("\n");  
+	    }  
+	     
+		ret = (int)mysql_affected_rows(mysql);//否者有结果就返回影响行数 
+		  
+	    printf("Query OK, %d rows affected\n", ret); 
+	    //----------------------------------------------
+	   //------释放结果-------------------------------- 
+   	    mysql_free_result(result);
+   }
+  
     return ret;  
 }  
   
