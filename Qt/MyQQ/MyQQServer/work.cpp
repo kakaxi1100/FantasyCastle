@@ -17,7 +17,7 @@ Work::Work(int port)
 		exit(EXIT_FAILURE);
 	} 
 	
-	if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+	if(sqlClient.connectMySQL(&mysql, "192.168.1.254", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
     {  
        exit(EXIT_FAILURE); 
     }
@@ -171,7 +171,7 @@ int Work::verifyRegEvent(struct RegRecvMsg &regRecv, int fd)
 		memset(sql, 0, sizeof(sql));
 		sprintf(sql,"insert userinfo (ID,PW) values (%d, %s)", regRecv.userID, regRecv.password);
 		result = sqlClient.sendAndResponseMySQL(&mysql, sql);
-		if(result >= 0)
+		if(result == -2)//查询正确并且返回的结果为NULL 
 		{
 			cout<<"User register Success!"<<endl;
 		}else{

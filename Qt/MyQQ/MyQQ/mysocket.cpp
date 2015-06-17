@@ -37,6 +37,10 @@ MySocket::~MySocket()
         delete it.value();
         ++it;
     }
+    if(instance != NULL)
+    {
+        delete instance;
+    }
 }
 
 MySocket* MySocket::instance = NULL;
@@ -245,6 +249,7 @@ void MySocket::regSendMsg()
     qDebug()<<"..............register send msg end";
 }
 
+int i = 0;
 void MySocket::socketRecv()
 {
     if(myTcpSocket->bytesAvailable() < (int)sizeof(quint16))
@@ -261,10 +266,12 @@ void MySocket::socketRecv()
     in>>len;
     in>>protocolID;
     qDebug()<<"protocol info: "<<len<<"  "<<protocolID;
+    uchar b;
     switch(protocolID)
     {
     case 101://--login recv
     {
+
         struct LoginRecv loginRecv;
         in>>loginRecv.loginType;
         shared_ptr<MyEvent> e_log;
@@ -314,8 +321,11 @@ void MySocket::socketRecv()
     default:
         break;
     }
-
-
+    //假如消息处理完成后，还有剩余的字节没有读完，则一直读完，以免跟下一个消息相连
+    while(myTcpSocket->bytesAvailable() > 0)
+    {
+        in>>b;
+    }
     //------------for test------------------------
     /* QDataStream in(myTcpSocket);
     char buf[100] = {0};
