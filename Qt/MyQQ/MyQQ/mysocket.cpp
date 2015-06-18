@@ -12,8 +12,6 @@
 
 using namespace std;
 
-int MySocket::clientID = 0;
-
 MySocket::MySocket(QObject *parent) :
     QObject(parent)
 {
@@ -31,16 +29,12 @@ MySocket::~MySocket()
         delete myTcpSocket;
     }
 
-    QMap<qint32, struct ClientInfo*>::const_iterator it = clientMap.cbegin();
-    while(it != clientMap.cend())
-    {
-        delete it.value();
-        ++it;
-    }
     if(instance != NULL)
     {
         delete instance;
     }
+
+    qDebug()<<"~MySocket()";
 }
 
 MySocket* MySocket::instance = NULL;
@@ -59,28 +53,14 @@ bool MySocket::isConnected()
     return _isConnected;
 }
 
-void MySocket::setConnectType(int type)
+void MySocket::socketConnect(QString ip, int port)
 {
-    _connectType = type;
-}
-
-void MySocket::socketConnect(uint userID, QString password, QString ip, int port)
-{
-    qDebug()<<"socketConnect "<<userID<<"   "<<password<<"   "<<ip<<"   "<< port<<endl;
+    qDebug()<<"host: "<<ip<<" port: "<< port<<endl;
     if(isConnected() == false)
     {
         myTcpSocket->abort();//取消已经有的连接
         QHostAddress hostAddr(ip);
         myTcpSocket->connectToHost(hostAddr, port);
-        addClient(userID, password);
-    }else{
-        if(_connectType == 1)
-        {
-            loginSendMsg();
-        }else if(_connectType == 2)
-        {
-            regSendMsg();
-        }
     }
 //    if(myTcpSocket->isOpen() == false)
 //    {
@@ -98,13 +78,9 @@ void MySocket::socketConnected()
 {
      qDebug()<<"socketConnected";
      _isConnected = true;
-     if(_connectType == 1)
-     {
-         loginSendMsg();
-     }else if(_connectType == 2)
-     {
-         regSendMsg();
-     }
+     shared_ptr<MyEvent> e;
+     e = make_shared<MyEvent>(SOCKET_CONNECTED);
+     EventDispatcher<MyLogin>::dispatchEvent(e);
 }
 
 void MySocket::socketDisconnected()
@@ -119,7 +95,7 @@ void MySocket::socketDisconnected()
 //    char buf[100];
 //};
 
-void MySocket::loginSendMsg()
+void MySocket::loginSendMsg(qint32 fUserID, QString fPassword)
 {
     qDebug()<<"logoin send msg start..........";
     QByteArray outblock;//输出缓冲区
@@ -131,8 +107,8 @@ void MySocket::loginSendMsg()
     loginSend.protocolID = 100;
 //---------------第二版 传用户ID过去---------------------------------------------------------
 
-    loginSend.userID = clientMap[0]->userID;
-    const char *password = clientMap[0]->password.toStdString().data();
+    loginSend.userID = fUserID;//clientMap[0]->userID;
+    const char *password = fPassword.toStdString().data();//clientMap[0]->password.toStdString().data();
     strncpy(loginSend.password,password, strlen(password));
 
     sendout<<qint16(sizeof(loginSend));//先用ushort发长度过去
@@ -223,7 +199,7 @@ void MySocket::loginSendMsg()
 //----------------------------------------------------------------
 }
 
-void MySocket::regSendMsg()
+void MySocket::regSendMsg(qint32 fUserID, QString fPassword)
 {
     qDebug()<<"register send msg start..........";
     QByteArray outblock;//输出缓冲区
@@ -234,8 +210,8 @@ void MySocket::regSendMsg()
     memset(&regSend, 0, sizeof(regSend));
     regSend.protocolID = 200;
 
-    regSend.userID = clientMap[0]->userID;
-    const char *password = clientMap[0]->password.toStdString().data();
+    regSend.userID = fUserID;//clientMap[0]->userID;
+    const char *password = fPassword.toStdString().data();//clientMap[0]->password.toStdString().data();
     strncpy(regSend.password,password, strlen(password));
 
     sendout<<qint16(sizeof(regSend));//先用ushort发长度过去
@@ -336,20 +312,5 @@ void MySocket::socketRecv()
 
 void MySocket::socketError()
 {
-    qDebug()<<myTcpSocket->errorString();
+    qDebug()<<"socketError:: "<<myTcpSocket->errorString();
 }
-
-void MySocket::addClient(uint userID, QString password)
-{
-    struct ClientInfo* clientInfo = new ClientInfo();
-
-    clientInfo->id = clientID;
-    clientInfo->userID = userID;
-//    clientInfo->userName = userName;
-    clientInfo->password = password;
-
-    clientMap[clientInfo->id] = clientInfo;
-
-    clientID++;
-}
-

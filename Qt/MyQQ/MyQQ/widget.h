@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "mylogin.h"
+#include <QCloseEvent>
 class Widget : public QWidget
 {
     Q_OBJECT
@@ -12,7 +13,8 @@ public:
     ~Widget();
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event);
+//    bool eventFilter(QObject *object, QEvent *event);
+    void closeEvent(QCloseEvent *);
 private:
     MyLogin* mylogin;
 };
