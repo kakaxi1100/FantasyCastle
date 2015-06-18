@@ -17,15 +17,15 @@ Work::Work(int port)
 		exit(EXIT_FAILURE);
 	} 
 	
-//	if(sqlClient.connectMySQL(&mysql, "192.168.1.254", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
-//    {  
-//       exit(EXIT_FAILURE); 
-//    }
-    
-    if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+	if(sqlClient.connectMySQL(&mysql, "192.168.1.254", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
     {  
        exit(EXIT_FAILURE); 
     }
+    
+//    if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+//    {  
+//       exit(EXIT_FAILURE); 
+//    }
     
     //生成sql语句 设置字符集 
 	char sql[50] = {0};

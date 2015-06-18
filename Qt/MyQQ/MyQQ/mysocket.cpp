@@ -225,7 +225,6 @@ void MySocket::regSendMsg(qint32 fUserID, QString fPassword)
     qDebug()<<"..............register send msg end";
 }
 
-int i = 0;
 void MySocket::socketRecv()
 {
     if(myTcpSocket->bytesAvailable() < (int)sizeof(quint16))
