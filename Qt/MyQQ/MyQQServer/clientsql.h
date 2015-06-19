@@ -6,7 +6,9 @@
 #include <errno.h>  
 #include <termios.h>  
 #include <string.h>  
-
+#include <vector>
+#include <iostream>
+using namespace std;
 class ClientSQL
 {
 
@@ -26,6 +28,8 @@ public:
 	//关闭数据库链接  
 	int closeMySQL(MYSQL* mysql); 
 	
+	//取得sql语句的值按照jason格式返回 
+	string getMySQLResult(MYSQL* mysql, const char* sql); 
 private:
 };
 

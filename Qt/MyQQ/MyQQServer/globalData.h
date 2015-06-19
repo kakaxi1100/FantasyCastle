@@ -14,7 +14,7 @@ struct LoginSendMsg
 	unsigned short len;
 	unsigned short protocolID;
 	
-	unsigned char loginType;//0-success,1-user invalid, 2-password invalid.
+	unsigned char loginType;//0-success,1-user or password invalid
 };
 
 //--200
@@ -31,6 +31,22 @@ struct RegSendMsg
 	unsigned short protocolID;
 	
 	unsigned char regType;//0-success,1-failure
+};
+
+//--300
+struct FriendListRecvMsg
+{
+	unsigned int userID;
+};
+
+
+//--301
+struct FriendListSendMsg
+{
+	unsigned short len;
+	unsigned short protocolID;
+	
+	char list[2048];
 };
 
 #endif

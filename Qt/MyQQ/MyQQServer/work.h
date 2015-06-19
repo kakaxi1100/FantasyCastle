@@ -37,8 +37,7 @@ private:
 	
 	int verifyUserData(struct LoginRecvMsg &loginRecv, int fd);
 	int verifyRegEvent(struct RegRecvMsg &regRecv, int fd);
-	
-	int getUserPassWordByID(int id);
+	int sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd);
 };
 
 #endif

@@ -17,15 +17,15 @@ Work::Work(int port)
 		exit(EXIT_FAILURE);
 	} 
 	
-	if(sqlClient.connectMySQL(&mysql, "192.168.1.254", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
-    {  
-       exit(EXIT_FAILURE); 
-    }
-    
-//    if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+//	if(sqlClient.connectMySQL(&mysql, "192.168.1.254", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
 //    {  
 //       exit(EXIT_FAILURE); 
 //    }
+    
+    if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+    {  
+       exit(EXIT_FAILURE); 
+    }
     
     //生成sql语句 设置字符集 
 	char sql[50] = {0};
@@ -63,7 +63,7 @@ int Work::recvSocket(int fd)
 	//假如消息是从头开始接收的
 	//假如不足四个字节 则不知道怎么处理，所以先要缓存起来 
 	cout<< "total::  "<<ba.getBufLen()<<endl;
-	if(ba.getBufLen() > 4)//取得消息头和消息长度 
+	if(ba.getBufLen() >= 4)//取得消息头和消息长度 等于4的时候是空消息 
 	{
 		len = ba.readUnsignedShort();//取得长度 
 		cout<<"len:: "<<len<<endl;
@@ -112,11 +112,10 @@ int Work::recvSocket(int fd)
 
 int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 {
+	cout<< "Protocol id: "<< id << endl;
 	switch(id)
 	{
 		case 100:
-			cout<< "Protocol id: "<< id << endl;
-			
 			struct LoginRecvMsg loginRecv; 
 			memset(&loginRecv, 0, sizeof(loginRecv));
 			memcpy(&loginRecv, &ba.buf[ba.getPosition()], sizeof(loginRecv));
@@ -131,7 +130,6 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 //			cout<< ba.readUTFBytes(100) << endl;
 			break;
 		case 200:
-			cout<< "Protocol id: "<< id << endl;
 			struct RegRecvMsg RegRecv; 
 			memset(&RegRecv, 0, sizeof(RegRecv));
 			memcpy(&RegRecv, &ba.buf[ba.getPosition()], sizeof(RegRecv));
@@ -143,12 +141,52 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 			
 			verifyRegEvent(RegRecv, fd);
 			break;
+		case 300:
+			struct FriendListRecvMsg friendListRecv;
+			memset(&friendListRecv, 0, sizeof(friendListRecv));
+			memcpy(&friendListRecv, &ba.buf[ba.getPosition()], sizeof(friendListRecv));
+			cout<<"UserID: "<<friendListRecv.userID<<endl;
+			ba.plusPosition(sizeof(FriendListRecvMsg));
+			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			
+			sendFriendList(friendListRecv,fd);
+				
+			break;
 		default:
 			cout<<"Unkonwn Protocol " << id << endl; 
 			break;
 	}
 	
 	return 0;
+}
+
+int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
+{
+		//生成sql语句
+	char sql[100] = {0};
+	sprintf(sql, "select friendlist from userinfo where ID=%d and friendlist is not NULL", firendListRecv.userID);
+	string result = sqlClient.getMySQLResult(&mysql, sql); 
+	
+	struct FriendListSendMsg friendlistSendMsg;
+	memset(&friendlistSendMsg, 0, sizeof(friendlistSendMsg));
+
+	friendlistSendMsg.protocolID = 301;
+	
+	if(result == "")//没有结果 或者结果错误 
+	{
+		cout<<"friendlist: NULL" << endl;
+	}else{
+//		strcpy(friendlistSendMsg.list, result.c_str());
+		size_t len = result.copy(friendlistSendMsg.list,result.length(), 0);
+		
+		friendlistSendMsg.len = result.length();
+		cout<<"friendlist: "<<friendlistSendMsg.list << "len: "<< len << endl;
+	}
+	
+	int sendSize = send(fd, &friendlistSendMsg, sizeof(friendlistSendMsg.len)+sizeof(friendlistSendMsg.protocolID)+friendlistSendMsg.len, 0);
+	cout << "sendSize: "<<sendSize<<endl;
+	
+	return 0; 
 }
 
 int Work::verifyRegEvent(struct RegRecvMsg &regRecv, int fd)
@@ -198,7 +236,7 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 {
 	//生成sql语句 
 	char sql[100] = {0};
-	sprintf(sql,"select ID from userinfo where ID=%d", loginRecv.userID);
+	sprintf(sql,"select * from userinfo where  ID=%d and PW='%s'", loginRecv.userID, loginRecv.password);
 	int result = sqlClient.sendAndResponseMySQL(&mysql, sql);
 	
 	struct LoginSendMsg loginSendMsg;
@@ -207,28 +245,15 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 	loginSendMsg.len = sizeof(loginSendMsg);
 	loginSendMsg.protocolID = 101;
 	
-	if(result > 0)//如果有这个用户 （即查询结果至少为1） 则看看密码对不对 
+	if(result > 0)//如果有这个用户 （即查询结果至少为1）
 	{	
-		memset(sql, 0, sizeof(sql));
-		
-		sprintf(sql,"select PW from userinfo where PW=%s", loginRecv.password);
-		result = sqlClient.sendAndResponseMySQL(&mysql, sql);
-		
-		if(result > 0)//密码正确 
-		{
-			loginSendMsg.loginType = 0;
-			cout<<"User Login !!"<<endl;
-		}
-		else//密码错误 
-		{
-			loginSendMsg.loginType = 2;
-			cout<<"User Password is Invalid !!"<<endl;	
-		} 
+		loginSendMsg.loginType = 0;
+		cout<<"User Login !!"<<endl;
 	}
-	else if(result == 0)
+	else if(result == 0) //没有找到这个用户代表影响了0行 
 	{
 		loginSendMsg.loginType = 1;
-		cout<<"User ID is Invalid !!"<<endl;
+		cout<<"User ID or Password is Invalid !!"<<endl;
 	}
 	else
 	{
@@ -248,12 +273,6 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 	}*/
 	return 0;	
 }
-
-int getUserPassWordByID(int id)
-{
-	return 0;
-}
-
 
 int Work::userLogout(int clientSd)
 {
@@ -277,7 +296,7 @@ void Work::run()
 	//6、开始轮询   
     while(1)  
     { 
-    	cout<<"epoll wait..."<<endl;
+    	cout<<"epoll wait..."<<endl<<endl<<endl;
 		//返回有事件的描述符的总数量   
         int fd_num = epoll_wait(epfd, events, CLINETCOUNT, -1);//-1 表示一直等待直到有事件到来
 		//错误返回-1   

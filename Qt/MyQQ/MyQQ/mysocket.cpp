@@ -7,6 +7,7 @@
 #include <QtEndian>
 #include <iostream>
 #include "myevent.h"
+#include "friendlistevent.h"
 #include <memory>
 #include "global.h"
 
@@ -225,6 +226,27 @@ void MySocket::regSendMsg(qint32 fUserID, QString fPassword)
     qDebug()<<"..............register send msg end";
 }
 
+void MySocket::friendListSendMsg(qint32 fUserID)
+{
+    qDebug()<<"friend List send msg start..........";
+    QByteArray outblock;//输出缓冲区
+    QDataStream sendout(&outblock, QIODevice::WriteOnly);
+    sendout.setByteOrder(QDataStream::LittleEndian);
+
+    struct FriendListSend friendListSend;
+    memset(&friendListSend, 0, sizeof(friendListSend));
+    friendListSend.protocolID = 300;
+    friendListSend.userID = fUserID;
+
+    sendout<<qint16(sizeof(friendListSend));//先用ushort发长度过去
+    sendout<< friendListSend.protocolID;//再发协议ID过去
+    sendout<< friendListSend.userID;//发送请求者的ID
+
+    qint64 q =  myTcpSocket->write(outblock, sizeof(friendListSend) + 2);//还要加上此消息长度
+    qDebug()<<"send length:: "<<q;
+    qDebug()<<"..............friend List send msg end";
+}
+
 void MySocket::socketRecv()
 {
     if(myTcpSocket->bytesAvailable() < (int)sizeof(quint16))
@@ -291,6 +313,18 @@ void MySocket::socketRecv()
             e_reg = make_shared<MyEvent>(LOGIN_RGE_FAILURE);
             EventDispatcher<MyLogin>::dispatchEvent(e_reg);
         }
+    }
+        break;
+    case 301://--friendlist recv
+    {
+        struct FriendListRcv flRecv;
+        memset(&flRecv,0,sizeof(flRecv));
+        in.readRawData(flRecv.list, len);//消息的总长度减去协议号和长度变量占用的值，剩下的就是协议体的值
+        cout<<"FriendListRcv: "<<flRecv.list<<endl;
+        string temp(flRecv.list);
+        shared_ptr<FriendListEvent> e_fl = make_shared<FriendListEvent>(FRIEND_LIST);
+        e_fl->list = temp;
+        EventDispatcher<MyLogin>::dispatchEvent(e_fl);
     }
         break;
     default:

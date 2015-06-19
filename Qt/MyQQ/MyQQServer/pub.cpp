@@ -138,6 +138,16 @@ int PUB::acceptSocket(int fd)
     return client_sockfd;    
 }
 
+int PUB::parseJason(string obj)
+{
+	if(obj.at(0) != '{' || obj.at(obj.length()-1) != '}')
+	{
+		cout<<"Jason format error! " << obj << endl;
+		return -1;
+	}
+	
+	return 0;
+}
 
 /*//接收消息    
 int recvSocket(int fd)    

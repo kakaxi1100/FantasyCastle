@@ -34,7 +34,10 @@ public:
 	void setnonblocking(int fd);
 
 	int acceptSocket(int fd); 
-
+	
+	int parseJason(string obj); 
+	
+	int splitString(string obj);
 private:
 };
 

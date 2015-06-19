@@ -7,7 +7,7 @@
 #include <QByteArray>
 #include "myeventdispatcher.h"
 
-
+//----login------
 struct LoginSend
 {
    quint16 protocolID;//--100
@@ -15,11 +15,12 @@ struct LoginSend
    char password[100];
 };
 
-struct LoginRecv
+struct LoginRecv//--101
 {
     uchar loginType;
 };
 
+//----register-----
 struct RegSend
 {
     quint16 protocolID;//--200
@@ -27,9 +28,21 @@ struct RegSend
     char password[100];
 };
 
-struct RegRecv
+struct RegRecv//--201
 {
     uchar regType;
+};
+
+//----freindlist-----
+struct FriendListSend
+{
+    quint16 protocolID;//--300
+    quint32 userID;
+};
+
+struct FriendListRcv//--301
+{
+    char list[2048];
 };
 
 class MySocket : QObject
@@ -56,6 +69,7 @@ private:
 public:
     void loginSendMsg(qint32 fUserID, QString fPassword);//发送登录消息
     void regSendMsg(qint32 fUserID, QString fPassword);//发送注册消息
+    void friendListSendMsg(qint32 fUserID);//发送好友列表消息
 };
 
 

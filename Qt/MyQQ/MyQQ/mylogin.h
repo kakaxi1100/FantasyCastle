@@ -12,7 +12,7 @@
 struct ClientInfo
 {
     qint32 id;
-    uint userID;
+    quint32 userID;
     QString userName;
     QString password;
 };
@@ -44,7 +44,7 @@ private:
 
     QMap<int, struct ClientInfo*> clientMap;
     static int clientID;
-    void addClient(uint userID, QString password);//添加用户信息
+    void addClient(quint32 userID, QString password);//添加用户信息
 private:
     qint8 whichBtn;
 public:
@@ -54,6 +54,7 @@ public:
     void handleLoginSuccess(MyEvent &e);
     void handleLoginFailure(MyEvent &e);
     void handleSokectConnected(MyEvent &e);
+    void handleFriendListRecv(MyEvent &e);
 };
 
 #endif // MYLOGIN_H

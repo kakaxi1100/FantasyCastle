@@ -12,5 +12,6 @@ typedef void(*EVENTFUN)(MyEvent&);
 extern string LOGIN_RGE_SUCCESS;
 extern string LOGIN_RGE_FAILURE;
 extern string SOCKET_CONNECTED;
+extern string FRIEND_LIST;
 
 #endif // GLOBAL_H

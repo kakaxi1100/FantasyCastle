@@ -6,6 +6,7 @@
 #include "myeventdispatcher.h"
 #include "global.h"
 #include "myevent.h"
+#include "friendlistevent.h"
 
 
 int MyLogin::clientID = 0;
@@ -88,6 +89,7 @@ MyLogin::MyLogin(QWidget *parent) :
     EventDispatcher<MyLogin>::addEventListener(LOGIN_RGE_SUCCESS, t, &MyLogin::handleLoginSuccess);
     EventDispatcher<MyLogin>::addEventListener(LOGIN_RGE_FAILURE, t, &MyLogin::handleLoginFailure);
     EventDispatcher<MyLogin>::addEventListener(SOCKET_CONNECTED, t, &MyLogin::handleSokectConnected);
+    EventDispatcher<MyLogin>::addEventListener(FRIEND_LIST, t, &MyLogin::handleFriendListRecv);
 }
 
 MyLogin::~MyLogin()
@@ -108,6 +110,12 @@ MyLogin::~MyLogin()
         ++it;
     }
     qDebug()<<"~MyLogin()";
+}
+
+void MyLogin::handleFriendListRecv(MyEvent &e)
+{
+    FriendListEvent& event = (FriendListEvent&) e;
+
 }
 
 void MyLogin::handleSokectConnected(MyEvent &e)
@@ -138,8 +146,10 @@ void MyLogin::handleLoginSuccess(MyEvent& e)
     if(myqq->isHidden() == true)
     {
         addClient(account->text().toUInt(), password->text());
-        myqq->show();
-        this->hide();
+        mysocket->friendListSendMsg(clientMap[0]->userID);
+
+//        myqq->show();
+//        this->hide();
     }
 }
 
@@ -191,7 +201,7 @@ void MyLogin::enableBtns(bool _isCan)
     reg->setEnabled(_isCan);
 }
 
-void MyLogin::addClient(uint userID, QString password)
+void MyLogin::addClient(quint32 userID, QString password)
 {
     struct ClientInfo* clientInfo = new ClientInfo();
 
@@ -211,4 +221,5 @@ void MyLogin::destroyObjs()
     EventDispatcher<MyLogin>::removeEventListener(LOGIN_RGE_SUCCESS);
     EventDispatcher<MyLogin>::removeEventListener(LOGIN_RGE_FAILURE);
     EventDispatcher<MyLogin>::removeEventListener(SOCKET_CONNECTED);
+    EventDispatcher<MyLogin>::removeEventListener(FRIEND_LIST);
 }
