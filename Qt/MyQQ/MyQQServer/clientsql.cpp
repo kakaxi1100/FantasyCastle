@@ -137,20 +137,27 @@ string ClientSQL::getMySQLResult(MYSQL* mysql, const char* sql)
 	    
 	    MYSQL_ROW row;  
 	    
+	    char *rowcontent;
+	    char NULLStr[10] = "NULL";
 	    while((row = mysql_fetch_row(result)) != NULL)  //取得有每一行的数据 
 	    {  
 	        int i = 0;
 			ret += "{";  
 	        for(; i < cols; i++)  
 	        {  
-	            printf("%s\t", row[i]);
+	        	rowcontent = row[i];
+	        	if(rowcontent == NULL)
+	        	{
+	        		rowcontent = NULLStr;
+				}
+	            printf("%s\t", rowcontent);
 				if(i < cols -1)
 				{  
-	            	ret += columns[i]+":" + row[i] + ",";
+	            	ret += columns[i]+":" + rowcontent + ",";
 	        	}
 				else
 				{
-	        		ret += columns[i]+":" + row[i];
+	        		ret += columns[i]+":" + rowcontent;
 				}
 	        }  
 	        printf("\n");  

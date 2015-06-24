@@ -3,7 +3,7 @@
 
 #include "byteArray.h"
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <errno.h>
 #include <unistd.h>
 #include <cstdlib>
@@ -14,6 +14,9 @@
 #include <netinet/in.h> 
 #include <signal.h>
 #include <stdio.h>
+#include <vector>
+#include <unordered_map>
+
 using namespace std;
 
 int signalTemplet(int signo, void(*func)(int));
@@ -35,9 +38,7 @@ public:
 
 	int acceptSocket(int fd); 
 	
-	int parseJason(string obj); 
-	
-	int splitString(string obj);
+	vector<unordered_map<string, string>> parseString(string& obj); 
 private:
 };
 

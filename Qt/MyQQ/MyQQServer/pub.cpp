@@ -138,15 +138,63 @@ int PUB::acceptSocket(int fd)
     return client_sockfd;    
 }
 
-int PUB::parseJason(string obj)
+vector<unordered_map<string, string>> PUB::parseString(string& test)
 {
-	if(obj.at(0) != '{' || obj.at(obj.length()-1) != '}')
+	vector<unordered_map<string, string>> tempVec;
+
+	string::size_type left = 0;
+	string::size_type right = 0;
+
+	while (true)
 	{
-		cout<<"Jason format error! " << obj << endl;
-		return -1;
+		left = test.find_first_of('{', left);
+		right = test.find_first_of('}', right);
+
+		if (left == string::npos || right == string::npos)
+		{
+			break;
+		}
+
+		string temp = test.substr(left + 1, right - left - 1);
+		//cout << temp << endl;
+
+		string::size_type lpos = 0;
+		string::size_type rpos = 0;
+		string item;
+
+		string::size_type kpos = 0;
+		string key;
+		string value;
+		while (true)
+		{
+			unordered_map<string, string> tempMap;
+			rpos = temp.find_first_of(',', rpos);
+			if (rpos == string::npos)
+			{
+				item = temp.substr(lpos);
+				kpos = item.find_first_of(':');
+				key = item.substr(0, kpos);
+				value = item.substr(kpos + 1);
+				//cout << "[ " << key << " ] = " << value << endl;
+				tempMap[key] = value;
+				tempVec.push_back(tempMap);
+				break;
+			}
+			item = temp.substr(lpos, rpos - lpos);
+			kpos = item.find_first_of(':');
+			key = item.substr(0, kpos);
+			value = item.substr(kpos + 1);
+			//cout << "[ " << key << " ] = " << value << endl;
+			tempMap[key] = value;
+			++rpos;
+			lpos = rpos;
+			tempVec.push_back(tempMap);
+		}
+
+		++right;
+		left = right;
 	}
-	
-	return 0;
+	return tempVec;
 }
 
 /*//接收消息    

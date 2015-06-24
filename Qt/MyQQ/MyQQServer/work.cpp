@@ -176,15 +176,57 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 	{
 		cout<<"friendlist: NULL" << endl;
 	}else{
-//		strcpy(friendlistSendMsg.list, result.c_str());
-		size_t len = result.copy(friendlistSendMsg.list,result.length(), 0);
+		string finalStr = "";
+		//要计算出结果的值 
+		vector<unordered_map<string, string>> testVec = pub.parseString(result);
+		for (auto m : testVec)
+		{
+			for (auto p : m)
+			{
+				cout << p.first << " = " << p.second << endl;
+				auto s = p.second;
+				string::size_type l = 0;
+				string::size_type r = 0;
+				string temp;
+				while (true)
+				{
+					r = s.find_first_of('|', r);
+					if (r == string::npos)
+					{
+						break;
+					}
+					temp = s.substr(l, r - l);
+					cout << "item is: " << temp << endl;
+					//查找对应ID的信息 
+					memset(sql, 0, sizeof(sql));
+					sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
+					result = sqlClient.getMySQLResult(&mysql, sql);
+					cout<<"reslut is: "<<result<<endl;
+					finalStr += result + ",";
+					
+					r++;
+					l = r;
+				}
+				temp = s.substr(l);
+				cout << "item is: " << temp << endl;
+				memset(sql, 0, sizeof(sql));
+				sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
+				result = sqlClient.getMySQLResult(&mysql, sql);
+				cout<<"reslut is: "<<result<<endl;
+				finalStr += result;
+			}
+		}
 		
-		friendlistSendMsg.len = result.length();
-		cout<<"friendlist: "<<friendlistSendMsg.list << "len: "<< len << endl;
+//		strcpy(friendlistSendMsg.list, finalStr.c_str());
+
+		size_t len = finalStr.copy(friendlistSendMsg.list, finalStr.length(), 0);
+		
+		friendlistSendMsg.len = finalStr.length();
+		cout<<"friendlist: "<<friendlistSendMsg.list << "  len:  "<< len << endl;
 	}
 	
-	int sendSize = send(fd, &friendlistSendMsg, sizeof(friendlistSendMsg.len)+sizeof(friendlistSendMsg.protocolID)+friendlistSendMsg.len, 0);
-	cout << "sendSize: "<<sendSize<<endl;
+	/*int sendSize = send(fd, &friendlistSendMsg, sizeof(friendlistSendMsg.len)+sizeof(friendlistSendMsg.protocolID)+friendlistSendMsg.len, 0);
+	cout << "sendSize: "<<sendSize<<endl;*/
 	
 	return 0; 
 }

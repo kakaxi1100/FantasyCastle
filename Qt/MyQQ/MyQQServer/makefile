@@ -1,8 +1,10 @@
 .SUFFIXES: .cpp .o
  
-CC=g++
+CC=g++510
  
 PARAM=-Wall -g
+
+CFLAG=-std=c++11
  
 SRCS=pub.cpp \
 	work.cpp \
@@ -21,7 +23,7 @@ all:$(OBJS)
 	@echo '---------Build Success !----------------'
 
 .cpp.o: 
-	$(CC) $(PARAM) -o $@ -c $<
+	$(CC) $(PARAM) -o $@ -c $< $(CFLAG)
 		
 .PHONY:clean clexe
  

@@ -111,7 +111,7 @@ char* ByteArray::readUTF()
 		return NULL;
 	}
 	plusPosition(len);
-	memset(p, 0, sizeof(p));
+	memset(p, 0, strlen(p));
 	strcpy(p, temp);
 	return p;
 }
@@ -126,7 +126,7 @@ char* ByteArray::readUTFBytes(int len)
 		return NULL;
 	}
 	plusPosition(len);
-	memset(p, 0, sizeof(p));
+	memset(p, 0, strlen(p));
 	strcpy(p, temp);
 	return p;
 }
