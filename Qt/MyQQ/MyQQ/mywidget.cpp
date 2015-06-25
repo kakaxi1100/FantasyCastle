@@ -2,6 +2,9 @@
 #include <QDebug>
 #include <QToolButton>
 #include <QPixmap>
+#include "myevent.h"
+
+int MyWidget::clientID = 0;
 
 MyWidget::MyWidget(QWidget *parent) :
     QWidget(parent)
@@ -37,25 +40,100 @@ MyWidget::MyWidget(QWidget *parent) :
     mainVBox->addWidget(testBtn);
 
     connect(testBtn, SIGNAL(clicked()), this,SLOT(testFunc()));
+
+    //event
+//    shared_ptr<MyWidget> t(this);
+//    EventDispatcher<MyWidget>::addEventListener(ADD_FRIEND, t, &MyWidget::addFriendItem);
+}
+
+MyWidget::~MyWidget()
+{
+    QMap<qint32, struct ClientInfo*>::const_iterator it = clientMap.cbegin();
+    while(it != clientMap.cend())
+    {
+        delete it.value();
+        ++it;
+    }
+
+    qDebug()<<"~MyWidget()";
+}
+
+void MyWidget::addClient(quint32 userID)
+{
+    struct ClientInfo* clientInfo = new ClientInfo();
+
+    clientInfo->id = clientID;
+    clientInfo->userID = userID;
+//    clientInfo->password = password;
+
+    clientMap[clientInfo->id] = clientInfo;
+
+    clientID++;
+}
+
+void MyWidget::addClient(ClientInfo &c)
+{
+     struct ClientInfo* clientInfo = new ClientInfo();
+     clientInfo->id = clientID;
+     clientInfo->userID = c.userID;
+     clientInfo->userName = c.userName;
+     clientInfo->userImage = c.userImage;
+     clientInfo->userState = c.userState;
+
+     clientMap[clientInfo->id] = clientInfo;
+
+     clientID++;
+
+     qDebug()<<"[clientInfo]: ID: "<<clientInfo->id <<" userID: " << clientInfo->userID << " ImageID: " << clientInfo->userImage << " Name: " << clientInfo->userName <<" State: " << clientInfo->userState << endl;
+}
+
+void MyWidget::addClient(quint32 userID, QString userName, qint32 userImage, qint8 userState)
+{
+    struct ClientInfo* clientInfo = new ClientInfo();
+
+    clientInfo->id = clientID;
+    clientInfo->userID = userID;
+    clientInfo->userName = userName;
+    clientInfo->userImage = userImage;
+    clientInfo->userState = userState;
+
+    clientMap[clientInfo->id] = clientInfo;
+
+    clientID++;
+}
+
+void MyWidget::destroyObjs()
+{
+//    EventDispatcher<MyWidget>::removeEventListener(ADD_FRIEND);
 }
 
 void MyWidget::testFunc()
 {
     qDebug() << "testFunc::" <<endl;
-    addFriendItem();
-    addBlckListItem();
+//    addFriendItem();
+//    addBlckListItem();
 }
 
-void MyWidget::addFriendItem()
+void MyWidget::addFriendItem(ClientInfo& c)
 {
     qDebug() << "addFriendItem：：" <<endl;
+
     QToolButton* t = new QToolButton();
-    t->setText(tr("Ares"));
+    t->setText(c.userName);
     t->setIcon(QPixmap(":/root/headNormal/1.png"));
     t->setIconSize(QPixmap(":/root/headNormal/1.png").size());
     t->setAutoRaise(true);
     t->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     friendVBox->addWidget(t);
+
+
+//    QToolButton* t = new QToolButton();
+//    t->setText(tr("Ares"));
+//    t->setIcon(QPixmap(":/root/headNormal/1.png"));
+//    t->setIconSize(QPixmap(":/root/headNormal/1.png").size());
+//    t->setAutoRaise(true);
+//    t->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//    friendVBox->addWidget(t);
 }
 
 void MyWidget::addBlckListItem()

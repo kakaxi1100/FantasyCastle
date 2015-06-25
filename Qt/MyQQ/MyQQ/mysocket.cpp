@@ -10,6 +10,7 @@
 #include "friendlistevent.h"
 #include <memory>
 #include "global.h"
+#include "mylogin.h"
 
 using namespace std;
 

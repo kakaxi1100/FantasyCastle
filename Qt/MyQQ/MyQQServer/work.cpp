@@ -179,9 +179,9 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 		string finalStr = "";
 		//要计算出结果的值 
 		vector<unordered_map<string, string>> testVec = pub.parseString(result);
-		for (auto m : testVec)
+		for (auto m : testVec)//m = map
 		{
-			for (auto p : m)
+			for (auto p : m)//p = pair
 			{
 				cout << p.first << " = " << p.second << endl;
 				auto s = p.second;
@@ -199,7 +199,7 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 					cout << "item is: " << temp << endl;
 					//查找对应ID的信息 
 					memset(sql, 0, sizeof(sql));
-					sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
+					sprintf(sql,"select ID, NAME, IMAGE, STATE from userinfo where ID=%s", temp.c_str());
 					result = sqlClient.getMySQLResult(&mysql, sql);
 					cout<<"reslut is: "<<result<<endl;
 					finalStr += result + ",";
@@ -210,7 +210,7 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 				temp = s.substr(l);
 				cout << "item is: " << temp << endl;
 				memset(sql, 0, sizeof(sql));
-				sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
+				sprintf(sql,"select ID, NAME, IMAGE, STATE from userinfo where ID=%s", temp.c_str());
 				result = sqlClient.getMySQLResult(&mysql, sql);
 				cout<<"reslut is: "<<result<<endl;
 				finalStr += result;
@@ -225,8 +225,8 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 		cout<<"friendlist: "<<friendlistSendMsg.list << "  len:  "<< len << endl;
 	}
 	
-	/*int sendSize = send(fd, &friendlistSendMsg, sizeof(friendlistSendMsg.len)+sizeof(friendlistSendMsg.protocolID)+friendlistSendMsg.len, 0);
-	cout << "sendSize: "<<sendSize<<endl;*/
+	int sendSize = send(fd, &friendlistSendMsg, sizeof(friendlistSendMsg.len)+sizeof(friendlistSendMsg.protocolID)+friendlistSendMsg.len, 0);
+	cout << "sendSize: "<<sendSize<<endl;
 	
 	return 0; 
 }

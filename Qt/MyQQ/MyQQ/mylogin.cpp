@@ -3,13 +3,9 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QDebug>
-#include "myeventdispatcher.h"
-#include "global.h"
+#include <QLatin1String>
 #include "myevent.h"
 #include "friendlistevent.h"
-
-
-int MyLogin::clientID = 0;
 
 MyLogin::MyLogin(QWidget *parent) :
     QWidget(parent)
@@ -103,19 +99,110 @@ MyLogin::~MyLogin()
 //    EventDispatcher<MyLogin>::removeEventListener(LOGIN_RGE_FAILURE);
 //    EventDispatcher<MyLogin>::removeEventListener(SOCKET_CONNECTED);
 
-    QMap<qint32, struct ClientInfo*>::const_iterator it = clientMap.cbegin();
-    while(it != clientMap.cend())
-    {
-        delete it.value();
-        ++it;
-    }
     qDebug()<<"~MyLogin()";
 }
 
 void MyLogin::handleFriendListRecv(MyEvent &e)
 {
     FriendListEvent& event = (FriendListEvent&) e;
+    //解析字符串
+    vector<vector<unordered_map<string, string>>> valueVec = parseString(event.list);
+    cout<<"valueVec:::::::::::::: "<< valueVec.size() << endl;
+    for(auto v : valueVec)//v = vec
+    {
+        ClientInfo c;
+        for (auto m : v)//m = map
+        {
+            for (auto p : m)//p = pair
+            {
+                cout << p.first << " = " << p.second << endl;
+                if(p.first == "ID")
+                {
+                    c.userID = atoi(p.second.c_str());
+                }
+                else if(p.first == "IMAGE")
+                {
+                    c.userImage = atoi(p.second.c_str());
+                }else if(p.first == "NAME")
+                {
+                    c.userName = QString(QLatin1String (p.second.c_str()));
+                }else if(p.first == "STATE")
+                {
+                    c.userState = atoi(p.second.c_str());
+                }
+            }
+        }
+        myqq->addClient(c);
+        myqq->addFriendItem(c);
+//        shared_ptr<MyEvent> e_addf = make_shared<MyEvent>(ADD_FRIEND);
+//        EventDispatcher<MyWidget>::dispatchEvent(e_addf);
+    }
+}
 
+
+//解析字符串
+//{ID:10000, NAME:cccc, IMAGE:1, STATE:0}, {ID:10001, NAME:bbbbb, IMAGE:2, STATE:1}
+//取得每个字段对应的值
+vector<vector<unordered_map<string, string>>> MyLogin::parseString(string &test)
+{
+    vector<unordered_map<string, string>> tempVec;
+
+    string::size_type left = 0;
+    string::size_type right = 0;
+
+    vector<vector<unordered_map<string, string>>> finalVec;
+
+    while (true)
+    {
+        left = test.find_first_of('{', left);
+        right = test.find_first_of('}', right);
+
+        if (left == string::npos || right == string::npos)
+        {
+            break;
+        }
+
+        string temp = test.substr(left + 1, right - left - 1);
+        //cout << temp << endl;
+
+        string::size_type lpos = 0;
+        string::size_type rpos = 0;
+        string item;
+
+        string::size_type kpos = 0;
+        string key;
+        string value;
+        while (true)
+        {
+            unordered_map<string, string> tempMap;
+            rpos = temp.find_first_of(',', rpos);
+            if (rpos == string::npos)
+            {
+                item = temp.substr(lpos);
+                kpos = item.find_first_of(':');
+                key = item.substr(0, kpos);
+                value = item.substr(kpos + 1);
+                //cout << "[ " << key << " ] = " << value << endl;
+                tempMap[key] = value;
+                tempVec.push_back(tempMap);
+                break;
+            }
+            item = temp.substr(lpos, rpos - lpos);
+            kpos = item.find_first_of(':');
+            key = item.substr(0, kpos);
+            value = item.substr(kpos + 1);
+            //cout << "[ " << key << " ] = " << value << endl;
+            tempMap[key] = value;
+            ++rpos;
+            lpos = rpos;
+            tempVec.push_back(tempMap);
+        }
+
+        ++right;
+        left = right;
+        finalVec.push_back(tempVec);
+    }
+    return finalVec;
 }
 
 void MyLogin::handleSokectConnected(MyEvent &e)
@@ -145,11 +232,11 @@ void MyLogin::handleLoginSuccess(MyEvent& e)
     enableBtns(true);
     if(myqq->isHidden() == true)
     {
-        addClient(account->text().toUInt(), password->text());
-        mysocket->friendListSendMsg(clientMap[0]->userID);
+        myqq->addClient(account->text().toUInt());
+        mysocket->friendListSendMsg(myqq->clientMap[0]->userID);
 
-//        myqq->show();
-//        this->hide();
+        myqq->show();
+        this->hide();
     }
 }
 
@@ -201,23 +288,12 @@ void MyLogin::enableBtns(bool _isCan)
     reg->setEnabled(_isCan);
 }
 
-void MyLogin::addClient(quint32 userID, QString password)
-{
-    struct ClientInfo* clientInfo = new ClientInfo();
-
-    clientInfo->id = clientID;
-    clientInfo->userID = userID;
-//    clientInfo->userName = userName;
-    clientInfo->password = password;
-
-    clientMap[clientInfo->id] = clientInfo;
-
-    clientID++;
-}
 
 //在父对象响应关闭事件之前调用， 先销毁对象
 void MyLogin::destroyObjs()
 {
+    myqq->destroyObjs();
+
     EventDispatcher<MyLogin>::removeEventListener(LOGIN_RGE_SUCCESS);
     EventDispatcher<MyLogin>::removeEventListener(LOGIN_RGE_FAILURE);
     EventDispatcher<MyLogin>::removeEventListener(SOCKET_CONNECTED);
