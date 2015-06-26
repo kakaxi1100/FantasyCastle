@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     mysocket.cpp \
     myevent.cpp \
     global.cpp \
-    friendlistevent.cpp
+    friendlistevent.cpp \
+    mytoolbutton.cpp \
+    mychat.cpp
 
 HEADERS  += widget.h \
     mytoolbox.h \
@@ -38,7 +40,9 @@ HEADERS  += widget.h \
     myeventdispatcher.h \
     global.h \
     myeventitem.h \
-    friendlistevent.h
+    friendlistevent.h \
+    mytoolbutton.h \
+    mychat.h
 
 RESOURCES += \
     headerImg.qrc

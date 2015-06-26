@@ -1,8 +1,8 @@
 #include "mywidget.h"
 #include <QDebug>
-#include <QToolButton>
 #include <QPixmap>
 #include "myevent.h"
+#include "mytoolbutton.h"
 
 int MyWidget::clientID = 0;
 
@@ -118,28 +118,15 @@ void MyWidget::addFriendItem(ClientInfo& c)
 {
     qDebug() << "addFriendItem：：" <<endl;
 
-    QToolButton* t = new QToolButton();
-    t->setText(c.userName);
-    t->setIcon(QPixmap(":/root/headNormal/1.png"));
-    t->setIconSize(QPixmap(":/root/headNormal/1.png").size());
-    t->setAutoRaise(true);
-    t->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    MyToolButton* t = new MyToolButton();
+    t->setClientInfo(c);
     friendVBox->addWidget(t);
-
-
-//    QToolButton* t = new QToolButton();
-//    t->setText(tr("Ares"));
-//    t->setIcon(QPixmap(":/root/headNormal/1.png"));
-//    t->setIconSize(QPixmap(":/root/headNormal/1.png").size());
-//    t->setAutoRaise(true);
-//    t->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-//    friendVBox->addWidget(t);
 }
 
 void MyWidget::addBlckListItem()
 {
     qDebug() << "addBlckListItem::" <<endl;
-    QToolButton* t = new QToolButton();
+    MyToolButton* t = new MyToolButton();
     t->setText(tr("ray"));
     t->setIcon(QPixmap(":/root/headNormal/2.png"));
     t->setIconSize(QPixmap(":/root/headNormal/2.png").size());
