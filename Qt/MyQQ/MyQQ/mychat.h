@@ -18,9 +18,21 @@ public:
 signals:
 
 public slots:
+    void sendMsg();
+    void closeClicked();
 private:
     QTextBrowser* showText;
     QTextEdit* inputText;
+
+    QFontComboBox* fontHomeBox;
+    QComboBox* fontSizeBox;
+    QToolButton* boldToolBtn;
+    QToolButton* italicToolBtn;
+    QToolButton* underlineToolBtn;
+    QToolButton* colorToolBtn;
+    QToolButton* sendToolBtn;
+    QToolButton* saveToolBtn;
+    QToolButton* clearToolBtn;
 
     QPushButton* closeBtn;
     QPushButton* sendBtn;
