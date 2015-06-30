@@ -8,6 +8,10 @@
 #include <QToolButton>
 #include <QTextEdit>
 #include <QPushButton>
+#include <QFont>
+#include <QColor>
+#include <QTextCharFormat>
+#include <QCloseEvent>
 
 class MyChat : public QWidget
 {
@@ -15,11 +19,21 @@ class MyChat : public QWidget
 public:
     explicit MyChat(QWidget *parent = 0);
 
-signals:
-
-public slots:
+protected:
+//    void closeEvent(QCloseEvent * e);
+//    bool eventFilter(QObject *o, QEvent *e);
+private slots:
     void sendMsg();
     void closeClicked();
+    void fontHomeChange();
+    void fontSizeChange();
+    void fontBoldChange();
+    void fontItalicChange();
+    void fontUnderlineChange();
+    void colorBtnClicked();
+    void saveBtnClicked();
+    void clearBtnClicked();
+    void fontFormatChanged(const QTextCharFormat& format);
 private:
     QTextBrowser* showText;
     QTextEdit* inputText;
@@ -36,6 +50,11 @@ private:
 
     QPushButton* closeBtn;
     QPushButton* sendBtn;
+
+    QColor color;
+
+    void showMsg();
+    bool saveFile(QString& fileName);
 };
 
 #endif // MYCHAT_H

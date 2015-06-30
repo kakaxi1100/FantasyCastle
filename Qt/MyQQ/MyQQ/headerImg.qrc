@@ -254,5 +254,12 @@
         <file>headNormal/262.png</file>
         <file>headNormal/263.png</file>
         <file>headNormal/264.png</file>
+        <file>chatIcon/bold.png</file>
+        <file>chatIcon/clearmsg.png</file>
+        <file>chatIcon/color.png</file>
+        <file>chatIcon/italic.png</file>
+        <file>chatIcon/savemsg.png</file>
+        <file>chatIcon/sendfile.png</file>
+        <file>chatIcon/underline.png</file>
     </qresource>
 </RCC>
