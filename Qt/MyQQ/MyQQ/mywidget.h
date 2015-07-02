@@ -32,17 +32,16 @@ private:
 
     QPushButton* testBtn;
 
-    static int clientID;
+//    static int clientID;
 public:
+    static struct ClientInfo myInfo;//用户自己的信息
 
     void addFriendItem(ClientInfo &c);
     void addBlckListItem();
 
-    QMap<int, struct ClientInfo*> clientMap;
+    QMap<unsigned int, struct ClientInfo*> clientMap;
 
-    void addClient(quint32 userID);//添加用户信息
-    void addClient(struct ClientInfo& c);
-    void addClient(quint32 userID, QString userName, qint32 userImage, qint8 userState);
+    void addClient(struct ClientInfo& c);//添加用户信息
 };
 
 #endif // MYWIDGET_H

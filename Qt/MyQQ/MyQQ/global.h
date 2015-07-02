@@ -11,7 +11,7 @@ typedef void(*EVENTFUN)(MyEvent&);
 
 struct ClientInfo
 {
-    int id;
+//    int id;
     unsigned int userID;
     QString userName;
     int userImage;

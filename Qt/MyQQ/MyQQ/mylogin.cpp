@@ -6,6 +6,7 @@
 #include <QLatin1String>
 #include "myevent.h"
 #include "friendlistevent.h"
+#include "loginregevent.h"
 
 MyLogin::MyLogin(QWidget *parent) :
     QWidget(parent)
@@ -17,7 +18,7 @@ MyLogin::MyLogin(QWidget *parent) :
     password = new QLineEdit(this);
     password->setText("123456");
     hostIP = new QLineEdit(this);
-    hostIP->setText("10.88.52.79");
+    hostIP->setText("10.88.52.88");
 //    hostIP->setText("192.168.1.254");
     hostPort = new QLineEdit(this);
     hostPort->setText("8080");
@@ -228,12 +229,32 @@ void MyLogin::handleLoginFailure(MyEvent& e)
 
 void MyLogin::handleLoginSuccess(MyEvent& e)
 {
-    cout<< e.getType() <<endl;
+    LoginRegEvent& evt = (LoginRegEvent&)e;
+    cout<< evt.getType()<<" :: "<<evt.list <<endl;
     enableBtns(true);
     if(myqq->isHidden() == true)
     {
-        myqq->addClient(account->text().toUInt());
-        mysocket->friendListSendMsg(myqq->clientMap[0]->userID);
+        vector<vector<unordered_map<string, string>>> valueVec = parseString(evt.list);
+        for(auto m : valueVec[0])
+        {
+            for(auto p : m)
+            {
+                if(p.first == "ID")
+                {
+                    MyWidget::myInfo.userID = atoi(p.second.c_str());
+                }
+                else if(p.first == "IMAGE")
+                {
+                    MyWidget::myInfo.userImage = atoi(p.second.c_str());
+                }else if(p.first == "NAME")
+                {
+                    MyWidget::myInfo.userName = QString(QLatin1String (p.second.c_str()));
+                }
+            }
+        }
+
+        MyWidget::myInfo.userState = 1;
+        mysocket->friendListSendMsg(MyWidget::myInfo.userID);
 
         myqq->show();
         this->hide();

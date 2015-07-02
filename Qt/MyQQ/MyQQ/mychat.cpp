@@ -11,10 +11,13 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
+#include "mywidget.h"
 
-MyChat::MyChat(QWidget *parent) :
-    QWidget(parent)
+#define MAX_CHAR 2048
+MyChat::MyChat(ClientInfo &c, QWidget* parent):QWidget(parent)
 {
+    this->clientInfo = c;
+
     this->resize(588, 512);
 
     showText = new QTextBrowser();
@@ -114,6 +117,8 @@ MyChat::MyChat(QWidget *parent) :
     connect(clearToolBtn, SIGNAL(clicked()), this, SLOT(clearBtnClicked()));
     //当单击输入框中一个字体时，字体格式设置会变成设置这个字体时的设置
     connect(inputText, SIGNAL(currentCharFormatChanged(QTextCharFormat)), this, SLOT(fontFormatChanged(const QTextCharFormat)));
+
+    mySocket = MySocket::getInstance();
 }
 
 //bool MyChat::eventFilter(QObject *o, QEvent *e)
@@ -138,16 +143,22 @@ void MyChat::sendMsg()
 {
     if(inputText->toPlainText() == "")
     {
-        QMessageBox::warning(this, "Warning", "Can not send the empty content !", QMessageBox::Ok);
+        QMessageBox::warning(this, "Warning", "Cannot send the empty content !", QMessageBox::Ok);
     }else{
-        showMsg();
+        if(inputText->toHtml().length() >= MAX_CHAR)
+        {
+            QMessageBox::warning(this, "Warning", "The Message is too long !", QMessageBox::Ok);
+            return;
+        }
+
+        mySocket->SendMessageSendMsg(MyWidget::myInfo.userID,this->clientInfo.userID, inputText->toHtml());
     }
 }
 
 void MyChat::closeClicked()
 {
-    this->hide();
-//    this->close();
+//    this->hide();
+    this->close();
 }
 
 void MyChat::fontHomeChange()

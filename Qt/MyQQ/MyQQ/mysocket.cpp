@@ -8,9 +8,11 @@
 #include <iostream>
 #include "myevent.h"
 #include "friendlistevent.h"
+#include "loginregevent.h"
 #include <memory>
 #include "global.h"
 #include "mylogin.h"
+#include <QLatin1String>
 
 using namespace std;
 
@@ -248,6 +250,34 @@ void MySocket::friendListSendMsg(qint32 fUserID)
     qDebug()<<"..............friend List send msg end";
 }
 
+void MySocket::SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, const QString &fmessage)
+{
+    qDebug()<<"Send Message send msg start..........";
+    QByteArray outblock;//输出缓冲区
+    QDataStream sendout(&outblock, QIODevice::WriteOnly);
+    sendout.setByteOrder(QDataStream::LittleEndian);
+
+    struct SendMessageSend sendMessageSend;
+    memset(&sendMessageSend, 0, sizeof(sendMessageSend));
+    sendMessageSend.protocolID = 500;
+    sendMessageSend.senderUserID = fsenderUserID;
+    sendMessageSend.receiverUserID = freceiverUserID;
+    const char *message = fmessage.toStdString().data();//clientMap[0]->password.toStdString().data();
+    strncpy(sendMessageSend.messageInfo, message, strlen(message));
+
+    qint16 len = qint16(sizeof(unsigned int)*2+strlen(sendMessageSend.messageInfo));
+    sendout<<len;//先用ushort发长度过去, 协议体长度
+    sendout<< sendMessageSend.senderUserID;//发送者ID
+    sendout<< sendMessageSend.receiverUserID;//接收者ID
+    sendout.writeRawData(sendMessageSend.messageInfo, strlen(sendMessageSend.messageInfo));//最后发密码过去
+
+    qint64 q =  myTcpSocket->write(outblock, len + 2);//还要加上此消息长度
+    qDebug()<<"send length:: "<<q;
+    qDebug()<<"..............Send Message send msg end";
+}
+
+
+
 void MySocket::socketRecv()
 {
     if(myTcpSocket->bytesAvailable() < (int)sizeof(quint16))
@@ -261,8 +291,8 @@ void MySocket::socketRecv()
     ushort len = 0;
     ushort protocolID = 0;
 
-    in>>len;
-    in>>protocolID;
+    in>>len;//读取协议长度
+    in>>protocolID;//读取协议ID
     qDebug()<<"protocol info: "<<len<<"  "<<protocolID;
     uchar b;
     switch(protocolID)
@@ -271,24 +301,28 @@ void MySocket::socketRecv()
     {
 
         struct LoginRecv loginRecv;
+        memset(&loginRecv,0,sizeof(loginRecv));
         in>>loginRecv.loginType;
-        shared_ptr<MyEvent> e_log;
+        in.readRawData(loginRecv.clientInfo, len - 1);//总长度包括了 loginType 和 clientInfo
+        shared_ptr<LoginRegEvent> e_log;
         if(loginRecv.loginType == 0)
         {
-            qDebug()<<"loginType Login Success!";
-            e_log = make_shared<MyEvent>(LOGIN_RGE_SUCCESS);
+            qDebug()<<"loginType Login Success!"<<QString(QLatin1String(loginRecv.clientInfo));
+            e_log = make_shared<LoginRegEvent>(LOGIN_RGE_SUCCESS);
+//            string tempLog(loginRecv.clientInfo);
+            e_log->list =string(loginRecv.clientInfo);
             EventDispatcher<MyLogin>::dispatchEvent(e_log);
         }
         else if(loginRecv.loginType == 1)
         {
             qDebug()<<"loginType UserID Error!";
-            e_log = make_shared<MyEvent>(LOGIN_RGE_FAILURE);
+            e_log = make_shared<LoginRegEvent>(LOGIN_RGE_FAILURE);
             EventDispatcher<MyLogin>::dispatchEvent(e_log);
         }
         else if(loginRecv.loginType == 2)
         {
             qDebug()<<"loginType Password Error!";
-            e_log = make_shared<MyEvent>(LOGIN_RGE_FAILURE);
+            e_log = make_shared<LoginRegEvent>(LOGIN_RGE_FAILURE);
             EventDispatcher<MyLogin>::dispatchEvent(e_log);
         }
         else

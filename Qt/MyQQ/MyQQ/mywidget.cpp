@@ -4,7 +4,8 @@
 #include "myevent.h"
 #include "mytoolbutton.h"
 
-int MyWidget::clientID = 0;
+//int MyWidget::clientID = 0;
+struct ClientInfo MyWidget::myInfo;
 
 MyWidget::MyWidget(QWidget *parent) :
     QWidget(parent)
@@ -58,48 +59,19 @@ MyWidget::~MyWidget()
     qDebug()<<"~MyWidget()";
 }
 
-void MyWidget::addClient(quint32 userID)
-{
-    struct ClientInfo* clientInfo = new ClientInfo();
-
-    clientInfo->id = clientID;
-    clientInfo->userID = userID;
-//    clientInfo->password = password;
-
-    clientMap[clientInfo->id] = clientInfo;
-
-    clientID++;
-}
 
 void MyWidget::addClient(ClientInfo &c)
 {
      struct ClientInfo* clientInfo = new ClientInfo();
-     clientInfo->id = clientID;
+//     clientInfo->id = clientID;
      clientInfo->userID = c.userID;
      clientInfo->userName = c.userName;
      clientInfo->userImage = c.userImage;
      clientInfo->userState = c.userState;
 
-     clientMap[clientInfo->id] = clientInfo;
+     clientMap[clientInfo->userID] = clientInfo;
 
-     clientID++;
-
-     qDebug()<<"[clientInfo]: ID: "<<clientInfo->id <<" userID: " << clientInfo->userID << " ImageID: " << clientInfo->userImage << " Name: " << clientInfo->userName <<" State: " << clientInfo->userState << endl;
-}
-
-void MyWidget::addClient(quint32 userID, QString userName, qint32 userImage, qint8 userState)
-{
-    struct ClientInfo* clientInfo = new ClientInfo();
-
-    clientInfo->id = clientID;
-    clientInfo->userID = userID;
-    clientInfo->userName = userName;
-    clientInfo->userImage = userImage;
-    clientInfo->userState = userState;
-
-    clientMap[clientInfo->id] = clientInfo;
-
-    clientID++;
+     qDebug()<<"[clientInfo]: userID: " << clientInfo->userID << " ImageID: " << clientInfo->userImage << " Name: " << clientInfo->userName <<" State: " << clientInfo->userState << endl;
 }
 
 void MyWidget::destroyObjs()
@@ -111,7 +83,7 @@ void MyWidget::testFunc()
 {
     qDebug() << "testFunc::" <<endl;
 //    addFriendItem();
-//    addBlckListItem();
+    addBlckListItem();
 }
 
 void MyWidget::addFriendItem(ClientInfo& c)

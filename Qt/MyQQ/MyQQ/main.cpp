@@ -6,10 +6,10 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
- //   Widget w;
+    Widget w;
 //    MyWidget w;
 //    MyLogin w;
-    MyChat w;
-    w.show();
+//    MyChat w;
+//    w.show();
     return a.exec();
 }

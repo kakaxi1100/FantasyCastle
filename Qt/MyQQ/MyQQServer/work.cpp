@@ -22,7 +22,7 @@ Work::Work(int port)
 //       exit(EXIT_FAILURE); 
 //    }
     
-    if(sqlClient.connectMySQL(&mysql, "10.88.52.79", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
+    if(sqlClient.connectMySQL(&mysql, "10.88.52.88", "liju", "123456", "MYQQDB") !=0 )//链接数据库不成功就退出  
     {  
        exit(EXIT_FAILURE); 
     }
@@ -284,13 +284,17 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 	struct LoginSendMsg loginSendMsg;
 	memset(&loginSendMsg, 0, sizeof(loginSendMsg));
 	
-	loginSendMsg.len = sizeof(loginSendMsg);
 	loginSendMsg.protocolID = 101;
-	
+	string final = "";
 	if(result > 0)//如果有这个用户 （即查询结果至少为1）
 	{	
 		loginSendMsg.loginType = 0;
-		cout<<"User Login !!"<<endl;
+		//返回用户信息
+		memset(sql, 0, sizeof(sql));
+		sprintf(sql,"select ID,NAME,IMAGE from userinfo where ID=%d", loginRecv.userID);
+		final = sqlClient.getMySQLResult(&mysql, sql);
+		final.copy(loginSendMsg.clientInfo, final.length(), 0);		
+		cout<<"User Login !! "<<loginSendMsg.clientInfo<<endl;
 	}
 	else if(result == 0) //没有找到这个用户代表影响了0行 
 	{
@@ -302,7 +306,8 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 		cout<<"verifyUserData sql error!!"<<endl;
 	}
 	
-	int sendSize = send(fd, &loginSendMsg, sizeof(loginSendMsg), 0);
+	loginSendMsg.len = sizeof(loginSendMsg.loginType)+final.length();
+	int sendSize = send(fd, &loginSendMsg, sizeof(loginSendMsg.len)+sizeof(loginSendMsg.protocolID)+loginSendMsg.len, 0);
 	cout << "sendSize: "<<sendSize<<endl;
 	
 /*	char buf[100] = "hello Ares! Your password is 123465!";

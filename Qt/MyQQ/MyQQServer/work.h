@@ -10,6 +10,8 @@
 #include "clientsql.h"
 #include "byteArray.h"
 #include "globalData.h"
+#include <unordered_map>
+#include <memory>
 
 #define CLINETCOUNT 100
 
@@ -22,6 +24,8 @@ public:
 	
 	void run();
 	int userLogout(int clientSd);
+	
+	unordered_map<unsigned int, shared_ptr<ClientInfo>> clients;
 private:
 	int socketfd;
 	

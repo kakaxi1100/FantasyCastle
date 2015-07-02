@@ -18,6 +18,7 @@ struct LoginSend
 struct LoginRecv//--101
 {
     uchar loginType;
+    char clientInfo[100];
 };
 
 //----register-----
@@ -45,6 +46,20 @@ struct FriendListRcv//--301
     char list[2048];
 };
 
+//----send message----
+struct SendMessageSend
+{
+    quint16 protocolID;//--500
+    unsigned int senderUserID;//发送者id
+    unsigned int receiverUserID;//接收者id
+    char messageInfo[2048];
+};
+
+struct SendMessageSendRcv//--501
+{
+
+};
+
 class MySocket : QObject
 {
     Q_OBJECT
@@ -70,6 +85,7 @@ public:
     void loginSendMsg(qint32 fUserID, QString fPassword);//发送登录消息
     void regSendMsg(qint32 fUserID, QString fPassword);//发送注册消息
     void friendListSendMsg(qint32 fUserID);//发送好友列表消息
+    void SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, const QString& fmessage);
 };
 
 

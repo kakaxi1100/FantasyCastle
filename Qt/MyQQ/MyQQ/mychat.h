@@ -12,13 +12,14 @@
 #include <QColor>
 #include <QTextCharFormat>
 #include <QCloseEvent>
+#include "mysocket.h"
+#include "global.h"
 
 class MyChat : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MyChat(QWidget *parent = 0);
-
+    explicit MyChat(ClientInfo& c, QWidget *parent = 0);
 protected:
 //    void closeEvent(QCloseEvent * e);
 //    bool eventFilter(QObject *o, QEvent *e);
@@ -35,6 +36,9 @@ private slots:
     void clearBtnClicked();
     void fontFormatChanged(const QTextCharFormat& format);
 private:
+    MySocket* mySocket;
+    ClientInfo clientInfo;
+
     QTextBrowser* showText;
     QTextEdit* inputText;
 
