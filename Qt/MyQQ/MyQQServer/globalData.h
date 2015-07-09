@@ -1,15 +1,6 @@
 #ifndef GLOBALDATA_H
 #define GLOBALDATA_H
 
-struct ClientInfo
-{
-	unsigned int userID;
-    string userName;
-    int userImage;
-    signed char userState;
-};
-
-
 //--100
 struct LoginRecvMsg
 {
@@ -42,6 +33,8 @@ struct RegSendMsg
 	unsigned short protocolID;
 	
 	unsigned char regType;//0-success,1-failure
+	
+	char clientInfo[100];//返回客户端信息 
 };
 
 //--300
@@ -60,4 +53,23 @@ struct FriendListSendMsg
 	char list[2048];
 };
 
+//--500
+struct SendMessageRecvMsg
+{
+	unsigned int senderUserID;//发送者id
+    unsigned int receiverUserID;//接收者id
+    char messageInfo[2048];//发送的信息 
+};
+
+
+//--501
+struct SendmessageSendMsg
+{
+	unsigned short len;
+	unsigned short protocolID;
+	
+	unsigned int senderUserID;//发送者id
+	unsigned int receiverUserID;//接收者id
+    char messageInfo[2048];//发送的信息 
+};
 #endif

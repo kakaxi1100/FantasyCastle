@@ -2,7 +2,6 @@
 #define MYLOGIN_H
 
 #include <QWidget>
-
 #include <QLineEdit>
 #include <QPushButton>
 #include <QMap>

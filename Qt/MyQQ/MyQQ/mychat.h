@@ -20,6 +20,8 @@ class MyChat : public QWidget
     Q_OBJECT
 public:
     explicit MyChat(ClientInfo& c, QWidget *parent = 0);
+
+    void showMsg(QString name, QString msg);
 protected:
 //    void closeEvent(QCloseEvent * e);
 //    bool eventFilter(QObject *o, QEvent *e);
@@ -57,7 +59,6 @@ private:
 
     QColor color;
 
-    void showMsg();
     bool saveFile(QString& fileName);
 };
 

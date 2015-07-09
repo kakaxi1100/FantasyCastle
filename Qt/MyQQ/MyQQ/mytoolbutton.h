@@ -4,6 +4,8 @@
 #include <QToolButton>
 #include "global.h"
 #include "mychat.h"
+#include "myeventdispatcher.h"
+#include "myevent.h"
 
 class MyToolButton : public QToolButton
 {
@@ -14,6 +16,8 @@ public:
 
     void setClientInfo(ClientInfo &c);
     ClientInfo& getClientInfo();
+
+    void showReceiverChat(QString name, QString msg);
 public slots:
     void handleClicked();
 protected:

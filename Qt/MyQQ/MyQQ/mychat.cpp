@@ -247,13 +247,15 @@ void MyChat::fontFormatChanged(const QTextCharFormat &format)
     color = format.foreground().color();
 }
 
-void MyChat::showMsg()
+void MyChat::showMsg(QString name, QString msg)
 {
     QString time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     showText->setTextColor(Qt::blue);
     showText->setCurrentFont(QFont("Arial", 12));
-    showText->append("[ name ] "+time);
-    showText->append(inputText->toHtml());
+    showText->append("[ "+name+" ] "+time);
+    showText->append(msg);
+
+//    showText->append(inputText->toHtml());
 //    showText->verticalScrollBar()->setValue(showText->verticalScrollBar()->maximum());
     inputText->clear();
     inputText->setFocus();

@@ -23,6 +23,7 @@ extern string LOGIN_RGE_FAILURE;
 extern string SOCKET_CONNECTED;
 extern string FRIEND_LIST;
 extern string ADD_FRIEND;
+extern string MSG_RECV;
 
 
 #endif // GLOBAL_H

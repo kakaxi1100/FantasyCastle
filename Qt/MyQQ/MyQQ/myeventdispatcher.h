@@ -37,7 +37,7 @@ void EventDispatcher<T>::addEventListener(string type, shared_ptr<T> t, EventFun
         events[type] = spItem;
     }
     else{
-        cout << "事件 " << type << " 已经定义" << endl;
+       // cout << "事件 " << type << " 已经定义" << endl;
     }
 }
 
@@ -53,7 +53,7 @@ void EventDispatcher<T>::dispatchEvent(shared_ptr<MyEvent> sp)
         (*spT.*spF)(*sp);
     }
     else{
-        cout << "event " << temp << " no define." << endl;
+        //cout << "event " << temp << " no define." << endl;
     }
 }
 
@@ -65,7 +65,7 @@ void EventDispatcher<T>::removeEventListener(string type)
         events.erase(type);
     }
     else{
-        cout << "event " << type << " no define." << endl;
+       // cout << "event " << type << " no define." << endl;
     }
 }
 

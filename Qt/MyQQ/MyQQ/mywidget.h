@@ -8,8 +8,12 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QMap>
+#include <iterator>
 #include "global.h"
 #include "myeventdispatcher.h"
+#include <QMap>
+#include "mytoolbutton.h"
 
 class MyWidget : public QWidget
 {
@@ -41,7 +45,10 @@ public:
 
     QMap<unsigned int, struct ClientInfo*> clientMap;
 
+    QMap<unsigned int, MyToolButton*> toolBtns;
     void addClient(struct ClientInfo& c);//添加用户信息
+
+    void handleRecvMsg(MyEvent &e);
 };
 
 #endif // MYWIDGET_H

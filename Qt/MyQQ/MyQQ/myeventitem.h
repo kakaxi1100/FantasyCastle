@@ -10,12 +10,12 @@ class EventItem
 public:
     EventItem()
     {
-        cout << "EventItem()" << endl;
+        //cout << "EventItem()" << endl;
     }
 
     ~EventItem()
     {
-        cout << "~EventItem()" << endl;
+       // cout << "~EventItem()" << endl;
     }
 
     void (T::*f)(MyEvent&);

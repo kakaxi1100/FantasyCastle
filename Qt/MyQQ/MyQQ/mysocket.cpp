@@ -9,9 +9,13 @@
 #include "myevent.h"
 #include "friendlistevent.h"
 #include "loginregevent.h"
+#include "messagerecvevent.h"
+#include "mytoolbutton.h"
 #include <memory>
 #include "global.h"
 #include "mylogin.h"
+#include "mywidget.h"
+#include <sstream>
 #include <QLatin1String>
 
 using namespace std;
@@ -47,7 +51,7 @@ MySocket* MySocket::getInstance()
 {
     if(instance == NULL)
     {
-        return new MySocket();
+        instance = new MySocket();
     }
     return instance;
 }
@@ -250,7 +254,7 @@ void MySocket::friendListSendMsg(qint32 fUserID)
     qDebug()<<"..............friend List send msg end";
 }
 
-void MySocket::SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, const QString &fmessage)
+void MySocket::SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, QString fmessage)
 {
     qDebug()<<"Send Message send msg start..........";
     QByteArray outblock;//输出缓冲区
@@ -264,15 +268,17 @@ void MySocket::SendMessageSendMsg(unsigned int fsenderUserID, unsigned int frece
     sendMessageSend.receiverUserID = freceiverUserID;
     const char *message = fmessage.toStdString().data();//clientMap[0]->password.toStdString().data();
     strncpy(sendMessageSend.messageInfo, message, strlen(message));
-
-    qint16 len = qint16(sizeof(unsigned int)*2+strlen(sendMessageSend.messageInfo));
+    qDebug()<<"The Message is: "<<QString(QLatin1String(sendMessageSend.messageInfo));
+    qint16 len = qint16(sizeof(unsigned int)*2+strlen(sendMessageSend.messageInfo)+sizeof(sendMessageSend.protocolID));//消息体的长度
     sendout<<len;//先用ushort发长度过去, 协议体长度
+    sendout<<sendMessageSend.protocolID;//发送协议号过去
     sendout<< sendMessageSend.senderUserID;//发送者ID
     sendout<< sendMessageSend.receiverUserID;//接收者ID
-    sendout.writeRawData(sendMessageSend.messageInfo, strlen(sendMessageSend.messageInfo));//最后发密码过去
+    sendout.writeRawData(sendMessageSend.messageInfo, strlen(sendMessageSend.messageInfo));//最后发消息过去
 
     qint64 q =  myTcpSocket->write(outblock, len + 2);//还要加上此消息长度
     qDebug()<<"send length:: "<<q;
+
     qDebug()<<"..............Send Message send msg end";
 }
 
@@ -354,12 +360,30 @@ void MySocket::socketRecv()
     {
         struct FriendListRcv flRecv;
         memset(&flRecv,0,sizeof(flRecv));
-        in.readRawData(flRecv.list, len);//消息的总长度减去协议号和长度变量占用的值，剩下的就是协议体的值
-        cout<<"FriendListRcv: "<<flRecv.list<<endl;
+        in.readRawData(flRecv.list, len);//这需要看发过来的长度是什么
+        qDebug()<<"FriendListRcv: "<<QString(QLatin1String(flRecv.list));
         string temp(flRecv.list);
         shared_ptr<FriendListEvent> e_fl = make_shared<FriendListEvent>(FRIEND_LIST);
         e_fl->list = temp;
         EventDispatcher<MyLogin>::dispatchEvent(e_fl);
+    }
+        break;
+    case 501://--message recv
+    {
+        struct SendMessageSendRcv msgRecv;
+        memset(&msgRecv,0,sizeof(msgRecv));
+        in>>msgRecv.senderUserID;
+        in>>msgRecv.receiverUserID;
+        in.readRawData(msgRecv.messageInfo, len - sizeof(msgRecv.senderUserID)-sizeof(msgRecv.receiverUserID));
+        string msg(msgRecv.messageInfo);
+        qDebug()<<"SendMessageSendRcv: "<<QString(QLatin1String(msg.c_str()))<<endl<<"Sender : "<<msgRecv.senderUserID << " Receiver: "<<msgRecv.receiverUserID;
+//        stringstream ss;
+//        ss<<msgRecv.senderUserID;
+        shared_ptr<MessageRecvEvent> e_msg = make_shared<MessageRecvEvent>(MSG_RECV);
+        e_msg->senderUserID = msgRecv.senderUserID;
+        e_msg->receiverUserID = msgRecv.receiverUserID;
+        e_msg->messge = msg;
+        EventDispatcher<MyWidget>::dispatchEvent(e_msg);
     }
         break;
     default:

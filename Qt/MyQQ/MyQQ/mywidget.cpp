@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QPixmap>
 #include "myevent.h"
-#include "mytoolbutton.h"
+#include "messagerecvevent.h"
 
 //int MyWidget::clientID = 0;
 struct ClientInfo MyWidget::myInfo;
@@ -43,13 +43,15 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(testBtn, SIGNAL(clicked()), this,SLOT(testFunc()));
 
     //event
-//    shared_ptr<MyWidget> t(this);
+    shared_ptr<MyWidget> t(this);
+    EventDispatcher<MyWidget>::addEventListener(MSG_RECV, t, &MyWidget::handleRecvMsg);
 //    EventDispatcher<MyWidget>::addEventListener(ADD_FRIEND, t, &MyWidget::addFriendItem);
 }
 
 MyWidget::~MyWidget()
 {
-    QMap<qint32, struct ClientInfo*>::const_iterator it = clientMap.cbegin();
+//    EventDispatcher<MyWidget>::removeEventListener(MSG_RECV);
+    QMap<unsigned int, struct ClientInfo*>::const_iterator it = clientMap.cbegin();
     while(it != clientMap.cend())
     {
         delete it.value();
@@ -76,6 +78,7 @@ void MyWidget::addClient(ClientInfo &c)
 
 void MyWidget::destroyObjs()
 {
+      EventDispatcher<MyWidget>::removeEventListener(MSG_RECV);
 //    EventDispatcher<MyWidget>::removeEventListener(ADD_FRIEND);
 }
 
@@ -92,6 +95,10 @@ void MyWidget::addFriendItem(ClientInfo& c)
 
     MyToolButton* t = new MyToolButton();
     t->setClientInfo(c);
+//    t->setAccessibleName(QString::number(c.userID));
+//    t->setObjectName(QString::number(c.userID));
+    toolBtns[c.userID] = t;
+    qDebug()<<t->objectName();
     friendVBox->addWidget(t);
 }
 
@@ -105,4 +112,40 @@ void MyWidget::addBlckListItem()
     t->setAutoRaise(true);
     t->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     blackListVBox->addWidget(t);
+}
+
+void MyWidget::handleRecvMsg(MyEvent &e)
+{
+   MessageRecvEvent& event = (MessageRecvEvent&) e;
+   qDebug()<<QString(QLatin1String(e.getType().c_str()));
+   qDebug()<<"senderUserID: "<<event.senderUserID<<" receiverUserID "<<event.receiverUserID<<endl;
+   if(event.senderUserID == myInfo.userID)
+   {
+       //假如发送者是自己
+       //找到收信人
+//       MyToolButton* recv = friendVBox->findChild<MyToolButton*>(QString::number(event.receiverUserID));
+       MyToolButton* recv = toolBtns[event.receiverUserID];
+       if(recv == NULL)
+       {
+            qDebug()<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+           return;
+       }
+       //假如找到了收信人则显示消息
+       //temp中的client 信息已经保存了发信人的信息
+       recv->showReceiverChat(myInfo.userName,QString(QLatin1String(event.messge.c_str())));
+       return;
+   }
+
+    //如果发信者是别人
+   //先查找有没有发信人
+//   MyToolButton* temp = friendVBox->findChild<MyToolButton*>(QString::number(event.senderUserID));
+   MyToolButton* temp = toolBtns[event.senderUserID];
+   if(temp == NULL)
+   {
+       return;
+   }
+
+   //假如找到了收信人则显示消息
+   //temp中的client 信息已经保存了发信人的信息
+   temp->showReceiverChat(temp->getClientInfo().userName, QString(QLatin1String(event.messge.c_str())));
 }

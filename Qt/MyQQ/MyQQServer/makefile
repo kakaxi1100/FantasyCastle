@@ -10,7 +10,8 @@ SRCS=pub.cpp \
 	work.cpp \
 	server.cpp \
 	byteArray.cpp \
-	clientsql.cpp
+	clientsql.cpp \
+	clientinfo.cpp
  
 OBJS=$(SRCS:.cpp=.o)
  

@@ -108,7 +108,7 @@ void MyLogin::handleFriendListRecv(MyEvent &e)
     FriendListEvent& event = (FriendListEvent&) e;
     //解析字符串
     vector<vector<unordered_map<string, string>>> valueVec = parseString(event.list);
-    cout<<"valueVec:::::::::::::: "<< valueVec.size() << endl;
+    qDebug()<<"valueVec:::::::::::::: "<< valueVec.size() << endl;
     for(auto v : valueVec)//v = vec
     {
         ClientInfo c;
@@ -116,7 +116,7 @@ void MyLogin::handleFriendListRecv(MyEvent &e)
         {
             for (auto p : m)//p = pair
             {
-                cout << p.first << " = " << p.second << endl;
+                qDebug()<< QString(QLatin1String(p.first.c_str()))<< " = " << QString(QLatin1String(p.second.c_str())) << endl;
                 if(p.first == "ID")
                 {
                     c.userID = atoi(p.second.c_str());
@@ -208,7 +208,7 @@ vector<vector<unordered_map<string, string>>> MyLogin::parseString(string &test)
 
 void MyLogin::handleSokectConnected(MyEvent &e)
 {
-    cout<<e.getType()<<endl;
+    qDebug()<<QString(QLatin1String(e.getType().c_str()))<<endl;
     if(whichBtn == 1)//login
     {
         mysocket->loginSendMsg(account->text().toUInt(), password->text());
@@ -223,14 +223,14 @@ void MyLogin::handleSokectConnected(MyEvent &e)
 
 void MyLogin::handleLoginFailure(MyEvent& e)
 {
-    cout<< e.getType() <<endl;
+    qDebug()<<QString(QLatin1String(e.getType().c_str()))<<endl;
     enableBtns(true);
 }
 
 void MyLogin::handleLoginSuccess(MyEvent& e)
 {
+    qDebug()<<QString(QLatin1String(e.getType().c_str()))<<endl;
     LoginRegEvent& evt = (LoginRegEvent&)e;
-    cout<< evt.getType()<<" :: "<<evt.list <<endl;
     enableBtns(true);
     if(myqq->isHidden() == true)
     {
@@ -285,7 +285,6 @@ void MyLogin::regClick()
     qDebug()<<"reg clicked!"<<endl;
     enableBtns(false);
     whichBtn = 2;
-    cout<<mysocket->isConnected()<<endl;
     if(mysocket->isConnected())
     {
         mysocket->regSendMsg(account->text().toUInt(), password->text());

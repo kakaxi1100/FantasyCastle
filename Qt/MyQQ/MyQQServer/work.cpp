@@ -1,5 +1,6 @@
 #include "work.h"
-
+#include <sstream>
+#include <stdexcept>
 
 using namespace std;
 Work::Work(int port)
@@ -37,6 +38,50 @@ Work::Work(int port)
 Work::~Work()
 {
 	
+}
+
+bool Work::isPlayerOnLine(unsigned int id)
+{
+//----3.正确做法 有两种，一种用find 一种用count----------------
+ 	if(clients.find(id) == clients.end())
+ 	{
+ 		return false;
+	}
+	return true;
+//	if(clients.count(id) == 1)
+//	{
+//		return true;
+//	}
+//	return false;
+//----2. 异常处理可以，但是不科学--------	
+//	try{
+//		clients.at(id);
+//		return true;
+//	}catch(out_of_range err)
+//	{
+//		return false;
+//	}
+//----1. 这样做假如 id 不存在会插入一个 id，所以不能用这种方法-------------------	
+//	if(clients[id] != NULL)
+//	{
+//		return true;
+//	}
+//	return false;
+}
+
+//用户登出 
+int Work::userLogout(int clientSd)
+{
+	for(auto p : clients)
+	{
+		if( p.second->socketID  == clientSd)
+		{
+			cout<<"Erase Client: "<<p.first<<" Socket ID: "<< p.second->socketID <<endl;
+			//需要通知用户已经登出，并告知其好友其已经登出 
+			clients.erase(p.first);
+		}
+	}
+	return 0;
 }
 
 //多客户端拼包和粘包不知道怎么处理。以后解决。 
@@ -115,7 +160,7 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 	cout<< "Protocol id: "<< id << endl;
 	switch(id)
 	{
-		case 100:
+		case 100://--login
 			struct LoginRecvMsg loginRecv; 
 			memset(&loginRecv, 0, sizeof(loginRecv));
 			memcpy(&loginRecv, &ba.buf[ba.getPosition()], sizeof(loginRecv));
@@ -129,7 +174,7 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 //			cout<< ba.readUTFBytes(100) << endl;
 //			cout<< ba.readUTFBytes(100) << endl;
 			break;
-		case 200:
+		case 200://--register
 			struct RegRecvMsg RegRecv; 
 			memset(&RegRecv, 0, sizeof(RegRecv));
 			memcpy(&RegRecv, &ba.buf[ba.getPosition()], sizeof(RegRecv));
@@ -141,7 +186,7 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 			
 			verifyRegEvent(RegRecv, fd);
 			break;
-		case 300:
+		case 300://--friend list
 			struct FriendListRecvMsg friendListRecv;
 			memset(&friendListRecv, 0, sizeof(friendListRecv));
 			memcpy(&friendListRecv, &ba.buf[ba.getPosition()], sizeof(friendListRecv));
@@ -152,11 +197,45 @@ int Work::handleMsg(unsigned short id, ByteArray &ba, int fd)
 			sendFriendList(friendListRecv,fd);
 				
 			break;
+		case 500://---message
+			struct SendMessageRecvMsg recvMsg;
+			memset(&recvMsg, 0, sizeof(recvMsg));
+			memcpy(&recvMsg, &ba.buf[ba.getPosition()], ba.getBytesAvailable());
+			cout<<"Send User ID: "<<recvMsg.senderUserID << " Recive User ID: "<<recvMsg.receiverUserID << " Message Info: "<<recvMsg.messageInfo<<endl;
+			ba.plusPosition(ba.getBytesAvailable());
+			cout<<"position is: "<<ba.getPosition() << " available is: "<<ba.getBytesAvailable() << endl;
+			
+			handleRecvMsgInfo(recvMsg, fd);
+			break;	
 		default:
 			cout<<"Unkonwn Protocol " << id << endl; 
 			break;
 	}
 	
+	return 0;
+}
+
+int Work::handleRecvMsgInfo(struct SendMessageRecvMsg &msgRecv, int fd)
+{
+	struct SendmessageSendMsg sendMsg;
+	memset(&sendMsg, 0, sizeof(sendMsg));
+	sendMsg.protocolID = 501;
+	if(!isPlayerOnLine(msgRecv.receiverUserID) || !isPlayerOnLine(msgRecv.senderUserID))
+	{
+		cout<<"The Receiver Or Sender is offline ! "<<" r: "<<msgRecv.receiverUserID<<" s: "<<msgRecv.senderUserID<<endl;
+		return -1;
+	}
+	sendMsg.senderUserID = msgRecv.senderUserID;
+	sendMsg.receiverUserID = msgRecv.receiverUserID;
+	strcpy(sendMsg.messageInfo, msgRecv.messageInfo);
+	sendMsg.len = sizeof(sendMsg.senderUserID)+sizeof(sendMsg.receiverUserID)+strlen(sendMsg.messageInfo);
+	//1、发给自己 
+	int sendSize = send(fd, &sendMsg, sizeof(sendMsg.len)+sizeof(sendMsg.protocolID)+sendMsg.len, 0);
+	cout<<"send myself::" << "sendSize: "<<sendSize<<endl;
+	//2、发给对方
+	int recvFD = clients[msgRecv.receiverUserID]->socketID;
+	int sendSize2 = send(recvFD, &sendMsg, sizeof(sendMsg.len)+sizeof(sendMsg.protocolID)+sendMsg.len, 0);
+	cout<<"send Other::" << "sendSize2: "<<sendSize2<<endl;
 	return 0;
 }
 
@@ -188,6 +267,7 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 				string::size_type l = 0;
 				string::size_type r = 0;
 				string temp;
+				string state;
 				while (true)
 				{
 					r = s.find_first_of('|', r);
@@ -199,8 +279,18 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 					cout << "item is: " << temp << endl;
 					//查找对应ID的信息 
 					memset(sql, 0, sizeof(sql));
-					sprintf(sql,"select ID, NAME, IMAGE, STATE from userinfo where ID=%s", temp.c_str());
+					sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
 					result = sqlClient.getMySQLResult(&mysql, sql);
+					
+					stringstream s1;
+					if(isPlayerOnLine(atoi(temp.c_str())))
+					{
+						s1<<1;
+					}else{
+						s1<<0;
+					}
+					state = s1.str();
+					result.replace(result.find_last_of('}'), 1, ",STATE:"+state+"}");
 					cout<<"reslut is: "<<result<<endl;
 					finalStr += result + ",";
 					
@@ -210,10 +300,22 @@ int Work::sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd)
 				temp = s.substr(l);
 				cout << "item is: " << temp << endl;
 				memset(sql, 0, sizeof(sql));
-				sprintf(sql,"select ID, NAME, IMAGE, STATE from userinfo where ID=%s", temp.c_str());
+				sprintf(sql,"select ID, NAME, IMAGE from userinfo where ID=%s", temp.c_str());
 				result = sqlClient.getMySQLResult(&mysql, sql);
-				cout<<"reslut is: "<<result<<endl;
+				
+				stringstream s2;
+				if(isPlayerOnLine(atoi(temp.c_str())))
+				{
+					s2<<1;
+				}else{
+					s2<<0;
+				}
+				state = s2.str();
+				result.replace(result.find_last_of('}'), 1, ",STATE:"+state+"}");
+				cout<<"result is: "<<result<<endl;
 				finalStr += result;
+				//还需要通知对方我上线了。
+				 
 			}
 		}
 		
@@ -254,11 +356,22 @@ int Work::verifyRegEvent(struct RegRecvMsg &regRecv, int fd)
 		regSendMsg.regType = 0;//成功
 		//在数据库中插入值 
 		memset(sql, 0, sizeof(sql));
-		sprintf(sql,"insert userinfo (ID,PW) values (%d, %s)", regRecv.userID, regRecv.password);
+		sprintf(sql,"insert userinfo (ID,PW,IMAGE) values (%d, %s, %d)", regRecv.userID, regRecv.password, 0);
 		result = sqlClient.sendAndResponseMySQL(&mysql, sql);
 		if(result == -2)//查询正确并且返回的结果为NULL 
 		{
 			cout<<"User register Success!"<<endl;
+			//缓存用户信息 
+			shared_ptr<ClientInfo> c = make_shared<ClientInfo>();
+			c->userID = regRecv.userID;
+			c->userName = "NULL";
+			c->userImage = 0;
+			c->userState = 1;
+			c->socketID = fd; 
+			cout<<"Self Info : UserName: "<<c->userName << " UserState : "<<c->userState<<" UserFD: "<<c->socketID<<endl;
+			clients[c->userID] = c; 
+			
+			sprintf(regSendMsg.clientInfo, "{ID=%d,NAME=%s,IMAGE=%d,STATE=%d}", c->userID,c->userName.c_str(),c->userImage,c->userState);
 		}else{
 			cout<<"insert User Info. Error!"<<endl;
 		}
@@ -268,7 +381,8 @@ int Work::verifyRegEvent(struct RegRecvMsg &regRecv, int fd)
 		cout<<"verifyRegEvent sql error!!"<<endl;
 	}
 	
-	int sendSize = send(fd, &regSendMsg, sizeof(regSendMsg), 0);
+	regSendMsg.len = sizeof(regSendMsg.regType)+strlen(regSendMsg.clientInfo);
+	int sendSize = send(fd, &regSendMsg, sizeof(regSendMsg.len)+sizeof(regSendMsg.protocolID)+regSendMsg.len, 0);
 	cout << "sendSize: "<<sendSize<<endl;
 	
 	return 0;
@@ -295,6 +409,29 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 		final = sqlClient.getMySQLResult(&mysql, sql);
 		final.copy(loginSendMsg.clientInfo, final.length(), 0);		
 		cout<<"User Login !! "<<loginSendMsg.clientInfo<<endl;
+		//缓存新用户
+		vector<unordered_map<string, string>> testVec = pub.parseString(final);
+		shared_ptr<ClientInfo> c = make_shared<ClientInfo>();
+		for (auto m : testVec)//m = map
+		{
+			for (auto p : m)//p = pair
+			{
+				if(p.first == "ID")
+				{
+					c->userID = atoi(p.second.c_str());
+				}else if(p.first == "NAME")
+				{
+					c->userName = p.second;	
+				}else if(p.first == "IMAGE")
+				{
+					c->userImage = atoi(p.second.c_str());
+				}
+			}
+		}
+		c->userState = 1;
+		c->socketID = fd;
+		cout<<"Self Info : UserName: "<<c->userName << " UserState : "<<c->userState<<" UserFD: "<<c->socketID<<endl;
+		clients[c->userID] = c; 
 	}
 	else if(result == 0) //没有找到这个用户代表影响了0行 
 	{
@@ -319,11 +456,6 @@ int Work::verifyUserData(struct LoginRecvMsg &loginRecv, int fd)
 		cout << "sendSize:: "<<sendSize<<endl;
 	}*/
 	return 0;	
-}
-
-int Work::userLogout(int clientSd)
-{
-	return 0;
 }
 
 void Work::run()
@@ -377,6 +509,7 @@ void Work::run()
                 if(recvSocket(client_skfd) <= 0)  
                 {  
                 	userLogout(client_skfd);
+                	epoll_ctl(epfd, EPOLL_CTL_DEL, client_skfd, &ev);  
                     close(client_skfd);  
                 }  
             }  
@@ -385,6 +518,7 @@ void Work::run()
             {  
             	client_skfd = events[i].data.fd;  
             	userLogout(client_skfd);
+            	epoll_ctl(epfd, EPOLL_CTL_DEL, client_skfd, &ev);
                 close(client_skfd);  
             }  
             //如果是挂起事件， 则执行close   
@@ -392,6 +526,7 @@ void Work::run()
             {  
             	client_skfd = events[i].data.fd;  
             	userLogout(client_skfd);
+            	epoll_ctl(epfd, EPOLL_CTL_DEL, client_skfd, &ev);
                 close(client_skfd);  
             }  
         }

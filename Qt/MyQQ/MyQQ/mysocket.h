@@ -57,7 +57,9 @@ struct SendMessageSend
 
 struct SendMessageSendRcv//--501
 {
-
+    unsigned int senderUserID;//发送者id
+    unsigned int receiverUserID;//接收者id
+    char messageInfo[2048];
 };
 
 class MySocket : QObject
@@ -85,7 +87,7 @@ public:
     void loginSendMsg(qint32 fUserID, QString fPassword);//发送登录消息
     void regSendMsg(qint32 fUserID, QString fPassword);//发送注册消息
     void friendListSendMsg(qint32 fUserID);//发送好友列表消息
-    void SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, const QString& fmessage);
+    void SendMessageSendMsg(unsigned int fsenderUserID, unsigned int freceiverUserID, QString fmessage);
 };
 
 

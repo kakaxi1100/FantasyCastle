@@ -3,12 +3,12 @@
 MyEvent::MyEvent(string type)
 {
     _type = type;
-    cout << "MyEvent()" << endl;
+   // cout << "MyEvent()" << endl;
 }
 
 MyEvent::~MyEvent()
 {
-    cout << "~MyEvent()" << endl;
+  //  cout << "~MyEvent()" << endl;
 }
 
 std::string MyEvent::getType()

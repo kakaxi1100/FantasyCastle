@@ -12,6 +12,7 @@
 #include "globalData.h"
 #include <unordered_map>
 #include <memory>
+#include "clientinfo.h"
 
 #define CLINETCOUNT 100
 
@@ -24,6 +25,8 @@ public:
 	
 	void run();
 	int userLogout(int clientSd);
+	
+	bool isPlayerOnLine(unsigned int id);
 	
 	unordered_map<unsigned int, shared_ptr<ClientInfo>> clients;
 private:
@@ -42,6 +45,7 @@ private:
 	int verifyUserData(struct LoginRecvMsg &loginRecv, int fd);
 	int verifyRegEvent(struct RegRecvMsg &regRecv, int fd);
 	int sendFriendList(struct FriendListRecvMsg &firendListRecv, int fd);
+	int handleRecvMsgInfo(struct SendMessageRecvMsg& msgRecv, int fd);
 };
 
 #endif

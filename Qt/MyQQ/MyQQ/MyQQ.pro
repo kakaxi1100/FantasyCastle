@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     friendlistevent.cpp \
     mytoolbutton.cpp \
     mychat.cpp \
-    loginregevent.cpp
+    loginregevent.cpp \
+    messagerecvevent.cpp
 
 HEADERS  += widget.h \
     mytoolbox.h \
@@ -44,7 +45,8 @@ HEADERS  += widget.h \
     friendlistevent.h \
     mytoolbutton.h \
     mychat.h \
-    loginregevent.h
+    loginregevent.h \
+    messagerecvevent.h
 
 RESOURCES += \
     headerImg.qrc
